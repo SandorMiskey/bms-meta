@@ -16,11 +16,15 @@ This document is licensed under Apache-2.0.
 3. Move items to "Moved" with a short note about where they landed.
 
 ## New / Unsorted
-- [Phase TBD | Consideration] Create a platform-specific documentation section (credential storage, autostart, IPC, serial ports, packaging, etc.).
+- [Phase 1 candidate | Consideration] API docs/tooling: Swagger UI (REST), protoc-gen-doc (gRPC), Postman collections (REST + gRPC).
 - [Phase 1/2 candidate | Planned] UI (including TUI) should support tabs with customizable views.
-- [Phase TBD | Consideration] Raylib (or similar) client idea to complement TUI or desktop variants (e.g., graphical bandmap, spot heatmap, large-screen contest dashboard).
+- [Phase 1/3 candidate | Consideration] Cache strategy: in-process TTL cache for single-node MVP (stdlib), optional Redis-compatible backend for SaaS; define TTL/invalidation; prefer caching external lookups.
 - [Phase 2 candidate | Consideration] Consider Wails instead of Tauri/Electron for the desktop client. Wails is a Go-focused desktop framework that packages a web UI with native bindings; it can simplify Go integration but has a smaller ecosystem than Tauri/Electron.
 - [Phase 2 candidate | Consideration] Web/Electron/Tauri client: start only after TUI features and integrations are well advanced.
+- [Phase 5 candidate | Consideration] SaaS observability baseline: OpenTelemetry instrumentation with LGTM stack (Loki/Grafana/Tempo/Mimir).
+- [Phase 5 candidate | Consideration] Evaluate CouchDB for offline-first multi-master replication and conflict handling; compare with SQL+sync.
+- [Phase TBD | Consideration] Create a platform-specific documentation section (credential storage, autostart, IPC, serial ports, packaging, etc.).
+- [Phase TBD | Consideration] Raylib (or similar) client idea to complement TUI or desktop variants (e.g., graphical bandmap, spot heatmap, large-screen contest dashboard).
 
 ## Triaged (needs placement)
 - (none)
