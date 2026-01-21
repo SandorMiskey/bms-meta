@@ -259,8 +259,11 @@ Status: completed (2026-01-21)
 - Record extension assumptions to avoid schema churn.
 
 ##### 1.1.2 Database Strategy
+Status: completed (2026-01-21)
 - Define SQLite-first baseline with optional PostgreSQL seeding.
 - Confirm migration tooling (golang-migrate), rollback expectations, and versioning.
+- Require lowest-common-denominator SQL, with documented exceptions only.
+- Enforce transactional migrations where supported and require down migrations.
 - Document SQL dialect boundaries to avoid drift.
 
 ##### 1.1.3 Schema Draft
@@ -268,7 +271,8 @@ Status: completed (2026-01-21)
 - Capture minimal fields and note forward-compat columns.
 - Define dual ID columns (`internal_id` + `public_id`) and FK usage for each core table.
 - Specify ownership rules (callsign memberships, station ownership XOR, operator fields).
-- Decide lookup tables or enums for bands, modes, and contests.
+- Add lookup tables for bands and modes.
+- Decide lookup tables or enums for contests.
 
 ##### 1.1.4 Migration Layout
 - Create migration directories for sqlite and postgres.

@@ -74,6 +74,8 @@
 - Use deterministic ordering for migrations (timestamp or increment).
 - Prefer indexes for common logbook queries (call, band, time).
 - Avoid vendor-specific SQL in shared schemas when possible.
+- Require SQLite/PostgreSQL schema parity; use lowest-common-denominator SQL.
+- Prefer transactional migrations when supported; always provide down migrations.
 
 ## Code Style: TUI/CLI (BubbleTea)
 - Keep model updates pure; side effects via commands.

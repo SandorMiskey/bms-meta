@@ -27,6 +27,9 @@ This document is licensed under Apache-2.0.
 - Naming: timestamp-based migration files.
 - Each migration should target only features common to SQLite and PostgreSQL.
 - Keep `schema_migrations` aligned across both migration sets.
+- Migrations should run inside a transaction when supported by the database.
+- Every migration must provide a `down` rollback.
+- Schema parity between SQLite and PostgreSQL is required; exceptions must be documented.
 
 ## SQL Layout
 - Schemas: `db/schema/sqlite` and `db/schema/postgres`.
@@ -52,6 +55,10 @@ This document is licensed under Apache-2.0.
 - `qsl_events`
 - `auth_credentials`
 - `auth_sessions`
+
+## Lookup Tables (Draft)
+- `bands`
+- `modes`
 
 ## Access Control Tables (Draft)
 - `callsign_memberships` (role: `admin` | `write` | `read`, created_by, created_at)
