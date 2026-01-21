@@ -251,9 +251,11 @@ Status: completed (2026-01-17)
 ### Phase 1: MVP (Server + TUI/CLI)
 #### 1.1 Database and Storage
 ##### 1.1.1 Requirements and Scope
+Status: completed (2026-01-21)
 - Review `IDEA-BACKLOG.md` and the Future Plans section for MVP schema needs.
 - Decide MVP table list, ID strategy, timestamps, soft delete policy, and naming rules.
 - Adopt dual IDs for core tables (internal int64 PK + public ULID), with sync using public IDs and local mapping.
+- Standardize audit columns (`created_at`, `created_by_user_id`, `updated_at`, `updated_by_user_id`, `deleted_at`) on core tables.
 - Record extension assumptions to avoid schema churn.
 
 ##### 1.1.2 Database Strategy
@@ -262,9 +264,10 @@ Status: completed (2026-01-17)
 - Document SQL dialect boundaries to avoid drift.
 
 ##### 1.1.3 Schema Draft
-- Draft core tables and relations: users, sessions, logbook_entries, stations, qsl_events, qsl_status.
+- Draft core tables and relations: users, callsigns, memberships, logbook_entries, stations, rigs, nodes, audit_events, qsl_events, qsl_status.
 - Capture minimal fields and note forward-compat columns.
 - Define dual ID columns (`internal_id` + `public_id`) and FK usage for each core table.
+- Specify ownership rules (callsign memberships, station ownership XOR, operator fields).
 - Decide lookup tables or enums for bands, modes, and contests.
 
 ##### 1.1.4 Migration Layout

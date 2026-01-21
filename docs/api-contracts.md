@@ -60,6 +60,11 @@ This document is licensed under Apache-2.0.
 - Refresh rotates tokens before expiry.
 - Logout revokes the current token.
 
+## Identifiers
+- External APIs accept and return `public_id` only.
+- Internal numeric identifiers are never exposed.
+- Default operator callsign comes from `users.default_callsign_id`.
+
 ## QSL Events (Draft)
 - QSL updates should emit events with `source` and `status`.
 - Sent and received are independent; a QSL may be received before sent.

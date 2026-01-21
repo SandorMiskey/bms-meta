@@ -15,6 +15,13 @@ This document is licensed under Apache-2.0.
 - Prefer Go standard library for implementation.
 - Exceptions must be justified (e.g., `golang-migrate` for cross-DB migrations).
 
+## Naming and Provenance
+- Table names are plural and `snake_case`.
+- Core tables include `internal_id`, `public_id`, `created_at`, `created_by_user_id`, `updated_at`, `updated_by_user_id`, `deleted_at`.
+- `created_by_user_id` and `updated_by_user_id` always reference `users`; seed/automation uses a reserved `system` user.
+- Store timestamps in UTC.
+- `users.default_callsign_id` holds the default operator callsign.
+
 ## Migration Strategy
 - Tool: `golang-migrate` CLI, invoked via Makefile targets.
 - Naming: timestamp-based migration files.
@@ -32,20 +39,15 @@ This document is licensed under Apache-2.0.
 
 ## Core Tables (Draft)
 - `users`
-- `operators`
 - `callsigns`
 - `callsign_memberships`
 - `stations`
-- `operating_contexts`
-- `log_entries`
-- `contests`
-- `contest_rulesets`
-- `exchange_items`
+- `logbook_entries`
+- `rig_types`
 - `rigs`
-- `rig_profiles`
 - `station_rigs`
-- `callsign_history`
-- `callsign_profiles`
+- `nodes`
+- `audit_events`
 - `qsl_status`
 - `qsl_events`
 - `auth_credentials`
@@ -65,6 +67,23 @@ This document is licensed under Apache-2.0.
 - `auth_credentials` (user_id, password_hash, created_at, updated_at)
 - `auth_sessions` (token, user_id, expires_at, refreshed_at, revoked_at)
 
+## Ownership and Membership (Draft)
+- `callsign_memberships` binds users to callsigns with a role (`admin`, `write`, `read`).
+- The creator of a callsign is inserted as the first `admin` membership.
+- `stations` are owned by either a user or a callsign (not both); enforce via a check constraint.
+- `logbook_entries` reference `callsign_id`, `created_by_user_id`, `operator_user_id`, and `operator_callsign_id`.
+- `logbook_entries.station_id` is optional.
+
+## Rig Inventory (Draft)
+- `rig_types` is a lookup table for extendable rig categories.
+- `rigs` belong to a station via `station_rigs` join rows.
+
+## Auditability (Draft)
+- Core table changes are recorded in `audit_events` (append-only).
+- `audit_events` fields: `entity_type`, `entity_public_id`, `action`, `actor_user_id`, `origin_node_id`, `event_time`.
+- `payload_before`/`payload_after` store diffs for updates and full snapshots for create/delete.
+- Audit coverage is mandatory in SaaS; MVP uses the same structure for compatibility.
+
 ## Types and Compatibility
 - Prefer compatible types: `text`, `integer`, `real`, `blob`, `boolean` (SQLite alias).
 - Avoid DB-native enums; use text enums with application validation.
@@ -75,11 +94,11 @@ This document is licensed under Apache-2.0.
   - Sync/import flows use `public_id` and map to local `internal_id` before writing child rows.
 
 ## Indexing Strategy (Initial)
-- `log_entries`: `(timestamp_utc)`, `(other_callsign)`, `(frequency_hz)`, `(mode_enum)`
-- `exchange_items`: `(log_entry_id)`, `(field_key)`
-- `qsl_status`: `(log_entry_id)`, `(channel)`, `(status)`
-- `callsign_history`: `(callsign_id)`, `(last_seen)`
-- `operating_contexts`: `(callsign_id)`, `(operator_id)`
+- `logbook_entries`: `(timestamp_utc)`, `(other_callsign)`, `(frequency_hz)`, `(mode_enum)`
+- `qsl_status`: `(logbook_entry_id)`, `(channel)`, `(status)`
+- `callsign_memberships`: `(callsign_id)`, `(user_id)`
+- `stations`: `(owner_user_id)`, `(owner_callsign_id)`
+- `audit_events`: `(entity_public_id)`, `(event_time)`
 
 ## Soft Delete Policy
 - Use `deleted_at` on user-visible data.
