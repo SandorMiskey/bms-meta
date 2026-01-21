@@ -31,6 +31,7 @@ This document is licensed under Apache-2.0.
 ## REST Mapping
 - REST gateway mirrors gRPC RPCs and resource names 1:1.
 - Versioning follows package names and URL prefix (e.g. `/v1/logbook`).
+- All external identifiers use `public_id` (ULID); internal numeric IDs are never exposed.
 
 ## Pagination
 - Requests accept `page_size` and `page_token`.

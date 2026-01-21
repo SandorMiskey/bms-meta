@@ -68,6 +68,11 @@ This document is licensed under Apache-2.0.
 ## Types and Compatibility
 - Prefer compatible types: `text`, `integer`, `real`, `blob`, `boolean` (SQLite alias).
 - Avoid DB-native enums; use text enums with application validation.
+- Use dual identifiers for core tables:
+  - `internal_id` is the primary key (SQLite `INTEGER PRIMARY KEY`, PostgreSQL `BIGINT` identity).
+  - `public_id` is a ULID stored as `TEXT` with a `UNIQUE` index.
+  - Foreign keys always reference `internal_id`.
+  - Sync/import flows use `public_id` and map to local `internal_id` before writing child rows.
 
 ## Indexing Strategy (Initial)
 - `log_entries`: `(timestamp_utc)`, `(other_callsign)`, `(frequency_hz)`, `(mode_enum)`

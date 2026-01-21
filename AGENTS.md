@@ -46,6 +46,10 @@
 - Prefer the Go standard library; external dependencies require clear justification.
 - For `.gitignore`, use SPDX header + blank line, block headers with `{{{`/`}}}`, and a blank line after each block header and before each block end.
 
+## Architecture Principles
+- Make MVP foundations forward-compatible so later phases are additive, not core refactors.
+- Favor scalable storage decisions that support high-volume logbook data from the start.
+
 ## Code Style: Go
 - Follow standard Go formatting with `gofmt`.
 - Import order: standard library, blank line, third-party, blank line, local modules.

@@ -253,6 +253,7 @@ Status: completed (2026-01-17)
 ##### 1.1.1 Requirements and Scope
 - Review `IDEA-BACKLOG.md` and the Future Plans section for MVP schema needs.
 - Decide MVP table list, ID strategy, timestamps, soft delete policy, and naming rules.
+- Adopt dual IDs for core tables (internal int64 PK + public ULID), with sync using public IDs and local mapping.
 - Record extension assumptions to avoid schema churn.
 
 ##### 1.1.2 Database Strategy
@@ -263,6 +264,7 @@ Status: completed (2026-01-17)
 ##### 1.1.3 Schema Draft
 - Draft core tables and relations: users, sessions, logbook_entries, stations, qsl_events, qsl_status.
 - Capture minimal fields and note forward-compat columns.
+- Define dual ID columns (`internal_id` + `public_id`) and FK usage for each core table.
 - Decide lookup tables or enums for bands, modes, and contests.
 
 ##### 1.1.4 Migration Layout
