@@ -312,12 +312,14 @@ Risk: migration rollback issues or SQL dialect drift.
 
 #### 1.3 Authentication and Sessions
 1. Review `IDEA-BACKLOG.md` and the Future Plans section for items to incorporate.
-2. Implement optional login (user/password) with session token issuance.
-3. Add token refresh with rotation before expiry (MVP).
-4. Support local-only default while allowing auth enablement.
-5. Enforce role-less access for MVP, with hooks for future RBAC.
-6. Dependency: config model and gRPC auth interceptors.
-7. Risk: auth bypass pathways leak into remote mode.
+2. Implement key-based login with device pairing and recovery codes.
+3. Support password login as an optional remote auth method.
+4. Store passwords node-locally only; do not synchronize credentials between nodes.
+5. Add token refresh with rotation before expiry (MVP).
+6. Support local-only default while allowing auth enablement.
+7. Enforce role-less access for MVP, with hooks for future RBAC.
+8. Dependency: config model and gRPC auth interceptors.
+9. Risk: auth bypass pathways leak into remote mode.
 
 #### 1.4 gRPC + Sync
 1. Review `IDEA-BACKLOG.md` and the Future Plans section for items to incorporate.

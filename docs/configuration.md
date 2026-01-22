@@ -25,6 +25,14 @@ This document is licensed under Apache-2.0.
 - Token storage uses keychain by default; fallback to encrypted file when keychain is unavailable.
 - Never log secrets; redact values in diagnostics.
 
+## Auth Model Notes
+- Remote nodes may enable both key-based and password-based login; key-based is the default.
+- Passwords are node-local and never synchronized between nodes.
+- Local offline login relies on device keys stored in `auth_key_secrets`.
+- Private keys are encrypted with the auth password by default; users may opt out explicitly.
+- Changing the auth password requires re-encrypting stored private keys.
+- Device registration happens via pairing or recovery codes; local trust is local-only.
+
 ## Server Config Schema (Draft)
 - `server.id`: instance identifier
 - `server.environment`: `local` or `remote`
@@ -32,10 +40,20 @@ This document is licensed under Apache-2.0.
 - `database.dsn`: connection string
 - `database.migrations`: migrations path
 - `auth.enabled`: true/false
-- `auth.mode`: `local` or `remote`
+- `auth.mode`: `local` | `remote` | `hybrid`
+- `auth.key_auth.enabled`: true/false (key-based login)
+- `auth.password_auth.enabled`: true/false (password login)
+- `auth.key_storage.encrypted`: true/false (encrypt local private keys)
+- `auth.key_storage.allow_unencrypted`: true/false (explicit opt-in)
+- `auth.recovery.enabled`: true/false
+- `auth.recovery.codes`: integer (how many codes to issue)
+- `auth.local_trust.enabled`: true/false (local-only, passwordless)
 - `auth.token_ttl`: duration (default `168h`)
 - `auth.refresh_before_expiry`: fraction (default `0.8`)
 - `auth.token_storage`: `keychain` | `file` | `config`
+- `auth.device_pairing.enabled`: true/false
+- `auth.device_pairing.require_local`: true/false
+- `auth.device_pairing.qr`: true/false
 - `logging.level`: `debug` | `info` | `warn` | `error`
 - `logging.format`: `json` or `text`
 - `grpc.address`: bind address
@@ -111,11 +129,18 @@ dsn = "file:bms.db"
 migrations = "db/migrations"
 
 [auth]
-enabled = false
+enabled = true
 mode = "local"
-token_ttl = "168h"
-refresh_before_expiry = 0.8
-token_storage = "keychain"
+key_auth = { enabled = true }
+password_auth = { enabled = true }
+key_storage = { encrypted = true, allow_unencrypted = false }
+recovery = { enabled = true, codes = 10 }
+local_trust = { enabled = true }
+device_pairing = { enabled = true, require_local = true, qr = true }
+# token settings
+# token_ttl = "168h"
+# refresh_before_expiry = 0.8
+# token_storage = "keychain"
 
 [logging]
 level = "info"
@@ -170,4 +195,30 @@ path = "~/.config/bms/plugins"
 
 [client.offline]
 enabled = false
+```
+
+## Example: Remote Server (TOML)
+```toml
+[server]
+id = "cloud"
+environment = "remote"
+
+[database]
+driver = "postgres"
+dsn = "postgres://user:pass@localhost:5432/bms"
+migrations = "db/migrations"
+
+[auth]
+enabled = true
+mode = "remote"
+key_auth = { enabled = true }
+password_auth = { enabled = true }
+key_storage = { encrypted = true, allow_unencrypted = false }
+recovery = { enabled = true, codes = 10 }
+local_trust = { enabled = false }
+device_pairing = { enabled = true, require_local = false, qr = true }
+# token settings
+# token_ttl = "168h"
+# refresh_before_expiry = 0.8
+# token_storage = "keychain"
 ```

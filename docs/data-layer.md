@@ -54,8 +54,11 @@ This document is licensed under Apache-2.0.
 - `audit_events`: append-only audit trail for core entities.
 - `qsl_status`: latest per-source QSL state snapshots.
 - `qsl_events`: QSL event history records.
-- `auth_credentials`: stored credentials for optional auth.
-- `auth_sessions`: session tokens and expiry tracking.
+- `auth_credentials`: password-based credentials (node-local).
+- `auth_sessions`: session tokens and client metadata.
+- `auth_keys`: public keys per device for key-based login.
+- `auth_key_secrets`: local encrypted private keys (node-local).
+- `auth_recovery_codes`: one-time recovery codes for device registration.
 - `dxcc_entities`: DXCC entity definitions with validity windows.
 - `dxcc_prefixes`: prefixes associated with DXCC entities.
 
@@ -76,8 +79,72 @@ This document is licensed under Apache-2.0.
 - Optional: allow `write` to lock own records when enabled by admin policy.
 
 ## Auth Tables (Draft)
-- `auth_credentials` (user_id, password_hash, created_at, updated_at)
-- `auth_sessions` (token, user_id, expires_at, refreshed_at, revoked_at)
+- `auth_credentials` stores password hashes for node-local logins and offline fallback.
+- `auth_sessions` stores session tokens for local and remote auth flows.
+- `auth_keys` stores public keys for device-based login.
+- `auth_key_secrets` stores encrypted private keys for offline device auth.
+- `auth_recovery_codes` stores one-time recovery codes.
+
+## Auth Storage and Offline Fallback (Draft)
+- Passwords are node-local and never synchronized between nodes.
+- Remote (SaaS) login supports both key-based and password-based auth; key-based is the default.
+- Local nodes may disable password login and rely on device keys only.
+- Local offline login uses device keys stored in `auth_key_secrets`.
+- `auth_key_secrets` exist only on the local node; remote nodes store public keys only.
+- Private keys are encrypted with the auth password by default; users may opt out of encryption explicitly.
+- Changing the auth password requires re-encrypting stored private keys.
+- Device registration is performed by pairing an existing device or by recovery codes.
+- Local trust (passwordless) is allowed only in local-only mode and is enabled by default unless disabled.
+
+## Auth Credentials (Draft)
+- `user_id` (FK, int64) links the credential to a user.
+- `password_hash` (text) stores an Argon2id hash.
+- `password_updated_at` (timestamp UTC) records the last password change.
+- `failed_attempts` (int) counts consecutive failures for lockout logic.
+- `last_failed_at` (timestamp UTC, nullable) records the last failure time.
+- `credential_source` (text) is `local` or `remote`.
+- Standard audit fields apply.
+
+## Auth Sessions (Draft)
+- `user_id` (FK, int64) links the session to a user.
+- `token_hash` (text) stores a hash of the session token.
+- `expires_at` (timestamp UTC) stores token expiry.
+- `refreshed_at` (timestamp UTC, nullable) records refresh rotations.
+- `revoked_at` (timestamp UTC, nullable) records explicit revocation.
+- `last_used_at` (timestamp UTC, nullable) records last use.
+- `client_name` (text, nullable) identifies the client (e.g., `bms-cli`).
+- `client_version` (text, nullable) stores the client version.
+- `ip_address` (text, nullable) records the last known IP.
+- `user_agent` (text, nullable) records the client user agent.
+- `session_source` (text) is `local`, `remote`, or `delegated`.
+- Standard audit fields apply.
+
+## Auth Keys (Draft)
+- `user_id` (FK, int64) links the key to a user.
+- `public_key` (text) stores the public key material.
+- `key_fingerprint` (text) stores a stable key fingerprint.
+- `key_algorithm` (text) stores the algorithm name.
+- `device_label` (text, nullable) stores a user-friendly label.
+- `created_at` (timestamp UTC) records registration time.
+- `last_used_at` (timestamp UTC, nullable) records last use.
+- `revoked_at` (timestamp UTC, nullable) records revocation.
+- Standard audit fields apply.
+
+## Auth Key Secrets (Draft)
+- `auth_key_id` (FK, int64) links to the public key.
+- `encrypted_private_key` (blob/text) stores the encrypted private key payload.
+- `encryption_salt` (blob/text) stores the salt used for key encryption.
+- `encryption_kdf` (text) stores KDF settings (e.g., Argon2id params).
+- `is_encrypted` (bool) indicates whether encryption is enabled.
+- Standard audit fields apply.
+
+## Auth Recovery Codes (Draft)
+- `user_id` (FK, int64) links to the user.
+- `code_hash` (text) stores a hash of the recovery code.
+- `issued_at` (timestamp UTC) records creation time.
+- `used_at` (timestamp UTC, nullable) records consumption time.
+- `revoked_at` (timestamp UTC, nullable) records revocation.
+- Standard audit fields apply.
 
 ## Ownership and Membership (Draft)
 - `callsign_memberships` binds users to callsigns with a role (`admin`, `write`, `read`).
