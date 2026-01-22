@@ -41,13 +41,24 @@ This document is licensed under Apache-2.0.
 - Schema parity between SQLite and PostgreSQL is required; exceptions must be documented.
 
 ## SQL Layout
-- Schemas: `db/schema/sqlite` and `db/schema/postgres`.
-- Migrations: `db/migrations/sqlite` and `db/migrations/postgres`.
+- Schemas: `db/schema/sqlite` and `db/schema/postgres` (generated dumps).
+- Migrations: `db/migrations/shared`, `db/migrations/sqlite`, and `db/migrations/postgres`.
+- `shared` contains canonical SQL that is copied or adapted into the DB-specific folders.
 - Queries: split by DB and domain for readability:
   - `internal/storage/sqlite/read/<domain>`
   - `internal/storage/sqlite/write/<domain>`
   - `internal/storage/postgres/read/<domain>`
   - `internal/storage/postgres/write/<domain>`
+
+## Schema Dumps (Generated)
+- Purpose: verify that SQLite and PostgreSQL migrations yield identical schemas.
+- Content: DDL-only schema dumps generated from migrations; no data is included.
+- Location: `db/schema/sqlite` and `db/schema/postgres`.
+- Naming: timestamped filenames that include the last migration applied, e.g.
+  `schema_20260121_153000_after_20260121150000_baseline.sql`.
+- Source of truth: migrations remain authoritative; schema dumps are review artifacts.
+- Workflow: dumps are committed so schema parity can be reviewed in code review.
+- Rule: schema dump files are generated only; do not edit by hand.
 
 ## Core Tables (Draft)
 - `users`: user accounts, defaults, and preferences.

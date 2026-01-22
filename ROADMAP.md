@@ -280,9 +280,10 @@ Status: completed (2026-01-21)
 - Use `contest_placeholder` until a dedicated contest lookup is introduced.
 
 ##### 1.1.4 Migration Layout
-- Create migration directories for sqlite and postgres.
+- Create migration directories for shared, sqlite, and postgres.
 - Add baseline up/down migrations with SPDX headers.
-- Define naming rules for future migrations.
+- Define naming rules for future migrations and schema dump files.
+- Generate and commit schema dumps under `db/schema/*` for parity review.
 
 ##### 1.1.5 sqlc Layout
 - Define query structure under `internal/storage` with read/write split.
