@@ -201,9 +201,17 @@ This document is licensed under Apache-2.0.
 - `is_active` disables a callsign without deleting data.
 
 ## Callsign Identifiers (Draft)
-- `callsign_identifiers` stores identifiers from external datasets (10-10, CWops, FOC, A1, CWJF, HACWG, SKCC).
-- Each row includes `identifier_type`, `identifier_value`, and `source` metadata.
-- Identifiers can be snapshotted into logbook entries when present.
+- `callsign_identifiers` stores external membership registries (10-10, CWops, FOC, A1, CWJF, HACWG, SKCC).
+- `callsign` (text) stores the member callsign in canonical uppercase.
+- `identifier_type` (text) stores the brand-style identifier (e.g., `CWops`, `SKCC`, `10-10`).
+- `identifier_value` (text) stores the membership value or number.
+- `member_name` (text, nullable) stores the member name when available.
+- `status` (text, nullable) stores membership status (e.g., `active`, `honorary`).
+- `valid_from` and `valid_to` (date, nullable) store membership validity.
+- `source_name`, `source_version`, `source_url`, and `imported_at` store dataset provenance.
+- `notes` (text, nullable) stores optional registry notes.
+- Standard audit fields apply.
+- The registry is external and not tied to `callsigns` by FK; matches use the callsign text.
 
 ## DXCC Entities (Draft)
 - `dxcc_number` (int) stores the official DXCC entity number.
