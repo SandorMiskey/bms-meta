@@ -205,11 +205,23 @@ This document is licensed under Apache-2.0.
 - Each row includes `identifier_type`, `identifier_value`, and `source` metadata.
 - Identifiers can be snapshotted into logbook entries when present.
 
-## DXCC (Draft)
-- `dxcc_entities` stores DXCC entities with validity windows (`valid_from`, `valid_to`).
-- `deleted_at` indicates soft deletion while preserving references.
-- `replaced_by_entity_id` points to the successor entity when `valid_to` is set.
-- `dxcc_prefixes` stores multiple prefixes per entity, with optional validity windows.
+## DXCC Entities (Draft)
+- `dxcc_number` (int) stores the official DXCC entity number.
+- `name` (text) stores the entity name.
+- `continent` (text, nullable) stores the continent code (e.g., `EU`, `NA`).
+- `valid_from` (date, nullable) stores the start date of entity validity.
+- `valid_to` (date, nullable) stores the end date of entity validity.
+- `replaced_by_entity_id` (FK, int64, nullable) links to the successor entity when `valid_to` is set.
+- `deleted_at` (timestamp, nullable) marks soft deletion while preserving references.
+- Standard audit fields apply.
+
+## DXCC Prefixes (Draft)
+- `dxcc_entity_id` (FK, int64) links the prefix to its entity.
+- `prefix` (text) stores the callsign prefix (e.g., `HA`, `HG`).
+- `valid_from` (date, nullable) stores the start date of prefix validity.
+- `valid_to` (date, nullable) stores the end date of prefix validity.
+- `is_primary` (bool, nullable) marks a preferred prefix for display.
+- Standard audit fields apply.
 
 ## Zone and Award Mapping (Draft)
 - ITU/CQ zone mapping should be derived from prefix rules with validity windows.
