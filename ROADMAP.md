@@ -275,6 +275,7 @@ Status: completed (2026-01-21)
 - Add DXCC entities/prefixes with validity windows and replacement mapping.
 - Define logbook entry metadata (split frequency/band, other party snapshot, exchanges, contest placeholder, lookup source).
 - Define rig inventory schema (rig types, models, station mapping).
+- Define bands/modes reference data pack, custom scope rules, and fallback `other` entries.
 - Decide lookup tables or enums for contests.
 
 ##### 1.1.4 Migration Layout

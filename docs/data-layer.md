@@ -63,6 +63,7 @@ This document is licensed under Apache-2.0.
 - `bands`: band definitions for log entries and validation.
 - `modes`: mode definitions for log entries and validation.
 - `rig_models`: known manufacturer/model templates for rig selection.
+- Bands and modes are seeded from a reference data pack and may include scoped custom entries.
 
 ## Access Control Tables (Draft)
 - `callsign_memberships` (role: `admin` | `write` | `read`, created_by, created_at)
@@ -178,6 +179,30 @@ This document is licensed under Apache-2.0.
 - `is_active` disables a rig without deleting data.
 - Standard audit fields apply.
 
+## Bands (Draft)
+- `code` is the canonical band key (e.g., `20m`) and is unique per scope.
+- `name` is the display label (e.g., "20 meters").
+- `adif_code` stores the ADIF band name/code used in imports/exports.
+- `lower_freq_hz` and `upper_freq_hz` store band edges in Hz.
+- `is_custom` flags user-defined entries not in the reference pack.
+- `scope` defines sharing: `global`, `user`, `callsign` (tenant later).
+- `owner_user_id` or `owner_callsign_id` links custom entries to their owner.
+- `is_active` disables a band without deleting history.
+- Standard audit fields apply.
+- `code=other` is a global fallback when no predefined band matches.
+
+## Modes (Draft)
+- `code` is the canonical mode key (e.g., `SSB`, `FT8`) and is unique per scope.
+- `name` is the display label.
+- `adif_mode` and `adif_submode` store ADIF mode fields.
+- `category` stores high-level grouping (`voice`, `data`, `cw`).
+- `is_custom` flags user-defined entries not in the reference pack.
+- `scope` defines sharing: `global`, `user`, `callsign` (tenant later).
+- `owner_user_id` or `owner_callsign_id` links custom entries to their owner.
+- `is_active` disables a mode without deleting history.
+- Standard audit fields apply.
+- `code=other` is a global fallback when no predefined mode matches.
+
 ## Station Rigs (Draft)
 - `station_id` and `rig_id` map rigs to stations.
 - `is_primary` marks the default rig for a station and type.
@@ -188,6 +213,9 @@ This document is licensed under Apache-2.0.
 ## Logbook Entries (Draft)
 - `timestamp_utc` stores QSO start time; `end_timestamp_utc` is optional.
 - `band_tx_id`/`band_rx_id` and `frequency_tx_hz`/`frequency_rx_hz` store split data.
+- `band_tx_id` and `band_rx_id` reference `bands` (internal IDs mapped via stable `public_id`).
+- `mode_id` references `modes` (internal ID mapped via stable `public_id`).
+- Unknown bands or modes should use `code=other` and record details in notes.
 - `other_callsign` is canonical uppercase; `other_callsign_id` is optional when the callsign exists in-system.
 - `rst_sent` and `rst_received` are optional.
 - `other_operator_name`, `other_qth`, and `other_grid_locator` store optional counterparty metadata.
@@ -231,7 +259,7 @@ This document is licensed under Apache-2.0.
   - Sync/import flows use `public_id` and map to local `internal_id` before writing child rows.
 
 ## Indexing Strategy (Initial)
-- `logbook_entries`: `(timestamp_utc)`, `(other_callsign)`, `(frequency_hz)`, `(mode_enum)`
+- `logbook_entries`: `(timestamp_utc)`, `(other_callsign)`, `(frequency_tx_hz)`, `(frequency_rx_hz)`, `(band_tx_id)`, `(band_rx_id)`, `(mode_id)`
 - `qsl_status`: `(logbook_entry_id, channel, direction)`
 - `callsign_memberships`: `(callsign_id)`, `(user_id)`
 - `stations`: `(owner_user_id)`, `(owner_callsign_id)`
