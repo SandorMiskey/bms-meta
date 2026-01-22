@@ -43,6 +43,7 @@ This document is licensed under Apache-2.0.
 - `users`: user accounts, defaults, and preferences.
 - `callsigns`: licensed callsign records with DXCC and zone defaults.
 - `callsign_memberships`: user-to-callsign roles and access.
+- `callsign_identifiers`: imported callsign identifiers from external datasets.
 - `stations`: station profiles, QTH metadata, and per-station overrides.
 - `station_callsigns`: mapping of stations to allowed callsigns.
 - `logbook_entries`: QSO log records and operator metadata.
@@ -101,6 +102,7 @@ This document is licensed under Apache-2.0.
 - `grid_locator` stores the station grid square (optional).
 - `latitude` and `longitude` store geolocation (optional).
 - `itu_zone` and `cq_zone` override callsign defaults (optional).
+- `sota_ref`, `pota_ref`, `wwff_ref`, and `iota_ref` store optional awards references.
 - `notes` stores optional station notes.
 - `is_active` disables a station without deleting data.
 
@@ -128,16 +130,39 @@ This document is licensed under Apache-2.0.
 - `itu_zone` and `cq_zone` store default zones and can be overridden by station data.
 - `is_active` disables a callsign without deleting data.
 
+## Callsign Identifiers (Draft)
+- `callsign_identifiers` stores identifiers from external datasets (10-10, CWops, FOC, A1, CWJF, HACWG, SKCC).
+- Each row includes `identifier_type`, `identifier_value`, and `source` metadata.
+- Identifiers can be snapshotted into logbook entries when present.
+
 ## DXCC (Draft)
 - `dxcc_entities` stores DXCC entities with validity windows (`valid_from`, `valid_to`).
 - `deleted_at` indicates soft deletion while preserving references.
 - `replaced_by_entity_id` points to the successor entity when `valid_to` is set.
 - `dxcc_prefixes` stores multiple prefixes per entity, with optional validity windows.
 
+## Zone and Award Mapping (Draft)
+- ITU/CQ zone mapping should be derived from prefix rules with validity windows.
+- IOTA data sources are TBD; store IOTA references on stations and logbook entries for now.
+- Mapping rules will be added as dedicated tables once data sources are finalized.
+
 ## Rig Inventory (Draft)
 - `rig_types` is a lookup table for extendable rig categories.
 - `rigs` are mapped to stations via `station_rigs` join rows.
 - `station_rigs.is_primary` can mark the default rig per type for a station.
+
+## Logbook Entries (Draft)
+- `timestamp_utc` stores QSO start time; `end_timestamp_utc` is optional.
+- `band_tx_id`/`band_rx_id` and `frequency_tx_hz`/`frequency_rx_hz` store split data.
+- `other_callsign` is canonical uppercase; `other_callsign_id` is optional when the callsign exists in-system.
+- `rst_sent` and `rst_received` are optional.
+- `other_operator_name`, `other_qth`, and `other_grid_locator` store optional counterparty metadata.
+- `other_dxcc_entity_id`, `other_itu_zone`, and `other_cq_zone` store inferred or imported zones.
+- `other_iota_ref`, `other_sota_ref`, `other_pota_ref`, `other_wwff_ref` store optional awards identifiers.
+- `exchange_sent` and `exchange_received` store optional exchange strings.
+- `qsl_via` stores optional routing hints.
+- `contest_placeholder` stores contest identifiers until a dedicated contest model is added.
+- `other_lookup_source` records provenance (`manual`, `internal`, `qrz`, `import`).
 
 ## Auditability (Draft)
 - Core table changes are recorded in `audit_events` (append-only).

@@ -273,6 +273,7 @@ Status: completed (2026-01-21)
 - Specify ownership rules (callsign memberships, station ownership XOR, operator fields, station-callsign mapping).
 - Add lookup tables for bands and modes.
 - Add DXCC entities/prefixes with validity windows and replacement mapping.
+- Define logbook entry metadata (split frequency/band, other party snapshot, exchanges, contest placeholder, lookup source).
 - Decide lookup tables or enums for contests.
 
 ##### 1.1.4 Migration Layout
@@ -422,7 +423,14 @@ Risk: migration rollback issues or SQL dialect drift.
 4. Dependency: API key management and rate-limiting support.
 5. Risk: third-party ToS limits or API availability changes.
 
-#### 3.3 Plugin System
+#### 3.3 Callsign Identifier Imports
+1. Import public identifier datasets (10-10, CWops, FOC, A1, CWJF, HACWG, SKCC).
+2. Map identifiers to callsigns via normalized `callsign_identifiers` storage.
+3. Use identifier data to auto-fill logbook entry metadata.
+4. Dependency: callsign mapping rules and data refresh strategy.
+5. Risk: dataset staleness or ambiguous call-to-id mapping.
+
+#### 3.4 Plugin System
 1. Review `IDEA-BACKLOG.md` and the Future Plans section for items to incorporate.
 2. Implement Lua plugin host runtime (loading, sandbox rules, lifecycle).
 3. Provide plugin API for awards and contest rules.
@@ -430,14 +438,14 @@ Risk: migration rollback issues or SQL dialect drift.
 5. Dependency: stable core domain model and event hooks.
 6. Risk: plugin sandbox escapes or unsafe plugin defaults.
 
-#### 3.4 Rig Control
+#### 3.5 Rig Control
 1. Review `IDEA-BACKLOG.md` and the Future Plans section for items to incorporate.
 2. Implement FLrig integration and basic CAT control interfaces.
 3. Define extension points for native CAT drivers later.
 4. Dependency: rig metadata model and config schema.
 5. Risk: device compatibility variance and platform-specific drivers.
 
-#### 3.5 Website Update
+#### 3.6 Website Update
 1. Review `IDEA-BACKLOG.md` and the Future Plans section for items to incorporate.
 2. Document QRZ/LoTW integrations and opt-in configuration.
 3. Publish plugin developer overview and stability notes.

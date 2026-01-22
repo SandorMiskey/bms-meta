@@ -21,6 +21,7 @@ This document is licensed under Apache-2.0.
 - [Phase 1/3 candidate | Consideration] Cache strategy: in-process TTL cache for single-node MVP (stdlib), optional Redis-compatible backend for SaaS; define TTL/invalidation; prefer caching external lookups.
 - [Phase 2 candidate | Consideration] Consider Wails instead of Tauri/Electron for the desktop client. Wails is a Go-focused desktop framework that packages a web UI with native bindings; it can simplify Go integration but has a smaller ecosystem than Tauri/Electron.
 - [Phase 2 candidate | Consideration] Web/Electron/Tauri client: start only after TUI features and integrations are well advanced.
+- [Phase 3 candidate | Consideration] Import callsign identifier datasets (10-10, CWops, FOC, A1, CWJF, HACWG, SKCC) for auto-fill.
 - [Phase 5 candidate | Consideration] SaaS observability baseline: OpenTelemetry instrumentation with LGTM stack (Loki/Grafana/Tempo/Mimir).
 - [Phase 5 candidate | Consideration] Evaluate CouchDB for offline-first multi-master replication and conflict handling; compare with SQL+sync.
 - [Phase TBD | Consideration] Create a platform-specific documentation section (credential storage, autostart, IPC, serial ports, packaging, etc.).
