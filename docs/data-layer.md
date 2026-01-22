@@ -48,7 +48,7 @@ This document is licensed under Apache-2.0.
 - `station_callsigns`: mapping of stations to allowed callsigns.
 - `logbook_entries`: QSO log records and operator metadata.
 - `rig_types`: equipment categories (radio, amp, antenna, etc.).
-- `rigs`: individual equipment items.
+- `rigs`: individual equipment items owned by users or callsigns.
 - `station_rigs`: mapping of rigs installed at stations.
 - `nodes`: origin node metadata for audit and sync.
 - `audit_events`: append-only audit trail for core entities.
@@ -62,6 +62,7 @@ This document is licensed under Apache-2.0.
 ## Lookup Tables (Draft)
 - `bands`: band definitions for log entries and validation.
 - `modes`: mode definitions for log entries and validation.
+- `rig_models`: known manufacturer/model templates for rig selection.
 
 ## Access Control Tables (Draft)
 - `callsign_memberships` (role: `admin` | `write` | `read`, created_by, created_at)
@@ -110,6 +111,7 @@ This document is licensed under Apache-2.0.
 - `station_callsigns` links stations to callsigns that may use them.
 - `is_primary` marks the default station for a callsign.
 - Enforce unique active mapping on `(station_id, callsign_id)` with a partial unique constraint.
+- Enforce one primary station per callsign in application logic.
 
 ## Users (Draft)
 - `username` is the login identifier (unique).
@@ -147,9 +149,41 @@ This document is licensed under Apache-2.0.
 - Mapping rules will be added as dedicated tables once data sources are finalized.
 
 ## Rig Inventory (Draft)
-- `rig_types` is a lookup table for extendable rig categories.
-- `rigs` are mapped to stations via `station_rigs` join rows.
+- `rig_types` defines equipment categories with stable codes and display names.
+- `rig_models` stores known manufacturer/model templates for auto-fill.
+- `rigs` are owned by either a user or a callsign (not both) and are mapped to stations via `station_rigs`.
+- `rigs.rig_type_id` should be set; use a fallback `other` type when needed.
 - `station_rigs.is_primary` can mark the default rig per type for a station.
+- Enforce one primary rig per station and type in application logic.
+
+## Rig Types (Draft)
+- `code` is a stable category key (e.g., `radio`, `amp`, `antenna`, `other`).
+- `name` is the display label.
+- Standard audit fields apply.
+
+## Rig Models (Draft)
+- `manufacturer` and `model` identify the known template.
+- `rig_type_id` optionally links the template to a category.
+- `notes` stores optional template notes.
+- Standard audit fields apply.
+
+## Rigs (Draft)
+- `owner_user_id` or `owner_callsign_id` stores ownership (XOR).
+- `rig_type_id` assigns the category; use `other` when needed.
+- `rig_model_id` links to a known template (optional).
+- `name` is the user-facing label.
+- `manufacturer` and `model` store ad-hoc values when no template exists.
+- `serial_number` stores optional serial data.
+- `notes` stores optional rig notes.
+- `is_active` disables a rig without deleting data.
+- Standard audit fields apply.
+
+## Station Rigs (Draft)
+- `station_id` and `rig_id` map rigs to stations.
+- `is_primary` marks the default rig for a station and type.
+- `notes` stores optional mapping notes.
+- Enforce unique active mapping on `(station_id, rig_id)`; primary-per-type is enforced in app logic.
+- Standard audit fields apply.
 
 ## Logbook Entries (Draft)
 - `timestamp_utc` stores QSO start time; `end_timestamp_utc` is optional.

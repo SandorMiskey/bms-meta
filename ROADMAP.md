@@ -274,6 +274,7 @@ Status: completed (2026-01-21)
 - Add lookup tables for bands and modes.
 - Add DXCC entities/prefixes with validity windows and replacement mapping.
 - Define logbook entry metadata (split frequency/band, other party snapshot, exchanges, contest placeholder, lookup source).
+- Define rig inventory schema (rig types, models, station mapping).
 - Decide lookup tables or enums for contests.
 
 ##### 1.1.4 Migration Layout
