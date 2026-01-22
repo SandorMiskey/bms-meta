@@ -79,6 +79,31 @@ This document is licensed under Apache-2.0.
   a reference data pack outside baseline migrations so they can be updated without
   schema changes.
 
+## Rollback Rules (Draft)
+- Every migration must include a `down` file with symmetric rollback logic.
+- Destructive changes must add a header comment: `-- IRREVERSIBLE: <reason>`.
+- Schema rollbacks should drop objects in reverse dependency order.
+- Seed rollbacks must delete only the seeded `public_id` values, not entire tables.
+- Rollbacks should run inside a transaction when supported by the database.
+- Schema dumps must be regenerated and committed after migration changes.
+
+## Rollback Checklist (Draft)
+- `down` file exists and matches the `up` intent.
+- Any data loss is marked with `IRREVERSIBLE` and documented in the migration.
+- Seed `down` targets only seeded `public_id` values.
+- Schema dumps updated for both SQLite and PostgreSQL.
+
+## Rollback Enforcement (Draft)
+- Pre-run lint is required before applying migrations.
+- The lint step runs in Makefile/CI wrappers and blocks migration execution on failure.
+- Planned lint checks:
+  - Every `*.up.sql` has a matching `*.down.sql`.
+  - Destructive statements require an `-- IRREVERSIBLE:` header.
+  - Seed rollbacks delete only seeded `public_id` values.
+  - Shared/sqlite/postgres migrations share the same timestamp/slug.
+  - Schema dumps are regenerated and committed after changes.
+- The migration runner should invoke lint first (e.g., a `make migrate-check` step) and abort on errors.
+
 ## Core Tables (Draft)
 - `users`: user accounts, defaults, and preferences.
 - `callsigns`: licensed callsign records with DXCC and zone defaults.

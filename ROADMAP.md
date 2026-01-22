@@ -285,6 +285,8 @@ Status: completed (2026-01-21)
 - Split baseline into schema and minimal seed migrations (reference data pack for full lists).
 - Define naming rules for future migrations and schema dump files.
 - Generate and commit schema dumps under `db/schema/*` for parity review.
+- Define rollback rules (required `down` files, IRREVERSIBLE header for data loss).
+- Add migration lint enforcement (pre-run checks in Makefile/CI).
 
 ##### 1.1.5 sqlc Layout
 - Define query structure under `internal/storage` with read/write split.
