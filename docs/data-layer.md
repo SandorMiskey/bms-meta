@@ -40,6 +40,13 @@ This document is licensed under Apache-2.0.
 - Every migration must provide a `down` rollback.
 - Schema parity between SQLite and PostgreSQL is required; exceptions must be documented.
 
+## Migration Naming (Draft)
+- Format: `YYYYMMDDHHMMSS_<slug>.up.sql` and `YYYYMMDDHHMMSS_<slug>.down.sql`.
+- `<slug>` is short, descriptive, and `snake_case`.
+- Use the same timestamp and slug across `shared`, `sqlite`, and `postgres`.
+- Baseline schema and seed are separate migrations (e.g., `*_baseline_schema` vs `*_baseline_seed`).
+- `shared` contains canonical SQL with the same `.up.sql`/`.down.sql` filenames used by DB-specific folders.
+
 ## SQL Layout
 - Schemas: `db/schema/sqlite` and `db/schema/postgres` (generated dumps).
 - Migrations: `db/migrations/shared`, `db/migrations/sqlite`, and `db/migrations/postgres`.
