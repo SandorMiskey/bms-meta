@@ -77,10 +77,21 @@ This document is licensed under Apache-2.0.
 
 ## Ownership and Membership (Draft)
 - `callsign_memberships` binds users to callsigns with a role (`admin`, `write`, `read`).
+- `callsign_memberships` includes invite tracking, role source, and optional notes.
 - The creator of a callsign is inserted as the first `admin` membership.
 - `stations` are owned by either a user or a callsign (not both); enforce via a check constraint.
 - `logbook_entries` reference `callsign_id`, `created_by_user_id`, `operator_user_id`, and `operator_callsign_id`.
 - `logbook_entries.station_id` is optional.
+
+## Callsign Memberships (Draft)
+- `role` stores `admin`, `write`, or `read`.
+- `role_source` records how the role was assigned (e.g., `admin_grant`, `invite_accept`, `system_bootstrap`, `sync_import`).
+- `note` stores optional admin comments.
+- `invited_by_user_id` links to the inviter when applicable.
+- `accepted_at` and `revoked_at` track membership lifecycle events.
+- `revoked_by_user_id` records who revoked access.
+- `created_at` acts as the invite timestamp; no separate `invited_at` is required.
+- Enforce unique active membership on `(callsign_id, user_id)` with a partial unique constraint.
 
 ## Users (Draft)
 - `username` is the login identifier (unique).
