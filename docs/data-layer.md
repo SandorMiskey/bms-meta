@@ -78,6 +78,18 @@ This document is licensed under Apache-2.0.
 - `write` can edit unless a record is locked.
 - Optional: allow `write` to lock own records when enabled by admin policy.
 
+## Record Locks (Draft)
+- `logbook_entry_id` (FK, int64) links the locked QSO.
+- `locked_by_user_id` (FK, int64) records who applied the lock.
+- `locked_at` (timestamp UTC) stores when the lock was created.
+- `reason` (text, nullable) stores the lock reason.
+- `unlocked_by_user_id` (FK, int64, nullable) records who removed the lock.
+- `unlocked_at` (timestamp UTC, nullable) stores when the lock was removed.
+- `unlock_reason` (text, nullable) stores the unlock reason.
+- `origin_node_id` (FK, int64, nullable) records the originating node for sync/import.
+- Standard audit fields apply.
+- Enforce one active lock per log entry using a partial unique constraint (`unlocked_at IS NULL`).
+
 ## Auth Tables (Draft)
 - `auth_credentials` stores password hashes for node-local logins and offline fallback.
 - `auth_sessions` stores session tokens for local and remote auth flows.
@@ -351,6 +363,7 @@ This document is licensed under Apache-2.0.
 - `callsign_memberships`: `(callsign_id)`, `(user_id)`
 - `stations`: `(owner_user_id)`, `(owner_callsign_id)`
 - `audit_events`: `(entity_public_id)`, `(event_time)`
+- `record_locks`: `(logbook_entry_id)`, `(unlocked_at)`
 
 ## Soft Delete Policy
 - Use `deleted_at` on user-visible data.
