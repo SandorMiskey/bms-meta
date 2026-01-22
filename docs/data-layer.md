@@ -21,6 +21,16 @@ This document is licensed under Apache-2.0.
 - `created_by_user_id` and `updated_by_user_id` always reference `users`; seed/automation uses a reserved `system` user.
 - Store timestamps in UTC.
 
+## Standard Fields (Shared)
+- `internal_id` (int64, PK) is the local primary key.
+- `public_id` (ULID text, unique) is the stable identifier for sync and APIs.
+- `created_at` (timestamp UTC) records creation time.
+- `created_by_user_id` (int64 FK) records the creator.
+- `updated_at` (timestamp UTC) records the last update.
+- `updated_by_user_id` (int64 FK) records the last updater.
+- `deleted_at` (timestamp UTC, nullable) marks soft deletion when applicable.
+- Append-only tables may omit `deleted_at` and treat rows as immutable history.
+
 ## Migration Strategy
 - Tool: `golang-migrate` CLI, invoked via Makefile targets.
 - Naming: timestamp-based migration files.
@@ -79,16 +89,17 @@ This document is licensed under Apache-2.0.
 - Optional: allow `write` to lock own records when enabled by admin policy.
 
 ## Record Locks (Draft)
-- `logbook_entry_id` (FK, int64) links the locked QSO.
-- `locked_by_user_id` (FK, int64) records who applied the lock.
+- Function: track lock history for logbook entries and enforce exclusive edits.
+- `logbook_entry_id` (int64 FK) links the locked QSO.
+- `locked_by_user_id` (int64 FK) records who applied the lock.
 - `locked_at` (timestamp UTC) stores when the lock was created.
 - `reason` (text, nullable) stores the lock reason.
-- `unlocked_by_user_id` (FK, int64, nullable) records who removed the lock.
+- `unlocked_by_user_id` (int64 FK, nullable) records who removed the lock.
 - `unlocked_at` (timestamp UTC, nullable) stores when the lock was removed.
 - `unlock_reason` (text, nullable) stores the unlock reason.
-- `origin_node_id` (FK, int64, nullable) records the originating node for sync/import.
-- Standard audit fields apply.
-- Enforce one active lock per log entry using a partial unique constraint (`unlocked_at IS NULL`).
+- `origin_node_id` (int64 FK, nullable) records the originating node for sync/import.
+- Standard fields apply.
+- Constraint: one active lock per logbook entry (`unlocked_at IS NULL`).
 
 ## Auth Tables (Draft)
 - `auth_credentials` stores password hashes for node-local logins and offline fallback.
@@ -109,16 +120,18 @@ This document is licensed under Apache-2.0.
 - Local trust (passwordless) is allowed only in local-only mode and is enabled by default unless disabled.
 
 ## Auth Credentials (Draft)
-- `user_id` (FK, int64) links the credential to a user.
+- Function: store password hashes for local or remote login.
+- `user_id` (int64 FK) links the credential to a user.
 - `password_hash` (text) stores an Argon2id hash.
 - `password_updated_at` (timestamp UTC) records the last password change.
 - `failed_attempts` (int) counts consecutive failures for lockout logic.
 - `last_failed_at` (timestamp UTC, nullable) records the last failure time.
 - `credential_source` (text) is `local` or `remote`.
-- Standard audit fields apply.
+- Standard fields apply.
 
 ## Auth Sessions (Draft)
-- `user_id` (FK, int64) links the session to a user.
+- Function: store session tokens and client metadata.
+- `user_id` (int64 FK) links the session to a user.
 - `token_hash` (text) stores a hash of the session token.
 - `expires_at` (timestamp UTC) stores token expiry.
 - `refreshed_at` (timestamp UTC, nullable) records refresh rotations.
@@ -129,10 +142,11 @@ This document is licensed under Apache-2.0.
 - `ip_address` (text, nullable) records the last known IP.
 - `user_agent` (text, nullable) records the client user agent.
 - `session_source` (text) is `local`, `remote`, or `delegated`.
-- Standard audit fields apply.
+- Standard fields apply.
 
 ## Auth Keys (Draft)
-- `user_id` (FK, int64) links the key to a user.
+- Function: store public keys for device-based login.
+- `user_id` (int64 FK) links the key to a user.
 - `public_key` (text) stores the public key material.
 - `key_fingerprint` (text) stores a stable key fingerprint.
 - `key_algorithm` (text) stores the algorithm name.
@@ -140,23 +154,25 @@ This document is licensed under Apache-2.0.
 - `created_at` (timestamp UTC) records registration time.
 - `last_used_at` (timestamp UTC, nullable) records last use.
 - `revoked_at` (timestamp UTC, nullable) records revocation.
-- Standard audit fields apply.
+- Standard fields apply.
 
 ## Auth Key Secrets (Draft)
-- `auth_key_id` (FK, int64) links to the public key.
+- Function: store encrypted private keys for offline auth.
+- `auth_key_id` (int64 FK) links to the public key.
 - `encrypted_private_key` (blob/text) stores the encrypted private key payload.
 - `encryption_salt` (blob/text) stores the salt used for key encryption.
 - `encryption_kdf` (text) stores KDF settings (e.g., Argon2id params).
 - `is_encrypted` (bool) indicates whether encryption is enabled.
-- Standard audit fields apply.
+- Standard fields apply.
 
 ## Auth Recovery Codes (Draft)
-- `user_id` (FK, int64) links to the user.
+- Function: store one-time recovery codes for device registration.
+- `user_id` (int64 FK) links to the user.
 - `code_hash` (text) stores a hash of the recovery code.
 - `issued_at` (timestamp UTC) records creation time.
 - `used_at` (timestamp UTC, nullable) records consumption time.
 - `revoked_at` (timestamp UTC, nullable) records revocation.
-- Standard audit fields apply.
+- Standard fields apply.
 
 ## Ownership and Membership (Draft)
 - `callsign_memberships` binds users to callsigns with a role (`admin`, `write`, `read`).
@@ -168,80 +184,98 @@ This document is licensed under Apache-2.0.
 - `logbook_entries.station_id` is optional.
 
 ## Callsign Memberships (Draft)
-- `role` stores `admin`, `write`, or `read`.
-- `role_source` records how the role was assigned (e.g., `admin_grant`, `invite_accept`, `system_bootstrap`, `sync_import`).
-- `note` stores optional admin comments.
-- `invited_by_user_id` links to the inviter when applicable.
-- `accepted_at` and `revoked_at` track membership lifecycle events.
-- `revoked_by_user_id` records who revoked access.
+- Function: link users to callsigns with roles and invite lifecycle tracking.
+- `callsign_id` (int64 FK) links to the callsign.
+- `user_id` (int64 FK) links to the user.
+- `role` (text) stores `admin`, `write`, or `read`.
+- `role_source` (text) records how the role was assigned (e.g., `admin_grant`, `invite_accept`, `system_bootstrap`, `sync_import`).
+- `note` (text, nullable) stores optional admin comments.
+- `invited_by_user_id` (int64 FK, nullable) links to the inviter.
+- `accepted_at` (timestamp UTC, nullable) stores invite acceptance.
+- `revoked_at` (timestamp UTC, nullable) stores when access was revoked.
+- `revoked_by_user_id` (int64 FK, nullable) records who revoked access.
 - `created_at` acts as the invite timestamp; no separate `invited_at` is required.
-- Enforce unique active membership on `(callsign_id, user_id)` with a partial unique constraint.
+- Standard fields apply.
+- Constraint: unique active membership on `(callsign_id, user_id)` (partial unique).
 
 ## Stations (Draft)
-- `name` is unique per owner (user or callsign).
-- `registered_qth` stores the station QTH used for licensing (optional).
-- `grid_locator` stores the station grid square (optional).
-- `latitude` and `longitude` store geolocation (optional).
-- `itu_zone` and `cq_zone` override callsign defaults (optional).
-- `sota_ref`, `pota_ref`, `wwff_ref`, and `iota_ref` store optional awards references.
-- `notes` stores optional station notes.
-- `is_active` disables a station without deleting data.
+- Function: store station profiles, QTH metadata, and zone overrides.
+- `name` (text) is unique per owner (user or callsign).
+- `registered_qth` (text, nullable) stores the station QTH used for licensing.
+- `grid_locator` (text, nullable) stores the station grid square.
+- `latitude` and `longitude` (real, nullable) store geolocation.
+- `itu_zone` (int, nullable) and `cq_zone` (int, nullable) override callsign defaults.
+- `sota_ref`, `pota_ref`, `wwff_ref`, `iota_ref` (text, nullable) store optional awards references.
+- `notes` (text, nullable) stores station notes.
+- `is_active` (bool) disables a station without deleting data.
+- Standard fields apply.
 
 ## Station Callsigns (Draft)
-- `station_callsigns` links stations to callsigns that may use them.
-- `is_primary` marks the default station for a callsign.
-- Enforce unique active mapping on `(station_id, callsign_id)` with a partial unique constraint.
-- Enforce one primary station per callsign in application logic.
+- Function: map stations to callsigns allowed to use them.
+- `station_id` (int64 FK) links the station.
+- `callsign_id` (int64 FK) links the callsign.
+- `is_primary` (bool) marks the default station for a callsign.
+- Standard fields apply.
+- Constraint: unique active mapping on `(station_id, callsign_id)` (partial unique).
+- Rule: one primary station per callsign (enforced in application logic).
 
 ## Users (Draft)
-- `username` is the login identifier (unique).
-- `email` is optional and can be used for notifications.
-- `display_name` is the friendly label shown in UIs.
-- `default_callsign_id` selects the operator callsign used by default.
-- `default_station_id` selects the station used by default.
-- `is_active` disables a user without deleting data.
-- `is_system` marks reserved system accounts.
-- `last_login_at` tracks the last login time.
-- `email_verified_at` tracks email verification status.
-- `timezone` and `locale` support user display preferences.
+- Function: store user accounts, defaults, and UI preferences.
+- `username` (text, unique) is the login identifier.
+- `email` (text, nullable) is used for notifications.
+- `display_name` (text, nullable) is the friendly label shown in UIs.
+- `default_callsign_id` (int64 FK, nullable) selects the operator callsign used by default.
+- `default_station_id` (int64 FK, nullable) selects the station used by default.
+- `is_active` (bool) disables a user without deleting data.
+- `is_system` (bool) marks reserved system accounts.
+- `last_login_at` (timestamp UTC, nullable) tracks the last login time.
+- `email_verified_at` (timestamp UTC, nullable) tracks email verification status.
+- `timezone` (text, nullable) stores the display timezone.
+- `locale` (text, nullable) stores the display locale.
+- Standard fields apply.
 
 ## Callsigns (Draft)
-- `callsign` is stored in canonical uppercase and is unique for active rows (partial unique with soft delete).
-- `registered_qth` stores the licensed QTH on the callsign (optional).
-- `dxcc_entity_id` references the DXCC entity.
-- `itu_zone` and `cq_zone` store default zones and can be overridden by station data.
-- `is_active` disables a callsign without deleting data.
+- Function: store licensed callsigns with default zones and DXCC mapping.
+- `callsign` (text, uppercase) is unique for active rows (partial unique with soft delete).
+- `registered_qth` (text, nullable) stores the licensed QTH on the callsign.
+- `dxcc_entity_id` (int64 FK) references the DXCC entity.
+- `itu_zone` (int, nullable) stores the default ITU zone.
+- `cq_zone` (int, nullable) stores the default CQ zone.
+- `is_active` (bool) disables a callsign without deleting data.
+- Standard fields apply.
 
 ## Callsign Identifiers (Draft)
-- `callsign_identifiers` stores external membership registries (10-10, CWops, FOC, A1, CWJF, HACWG, SKCC).
+- Function: store external membership registries and club identifiers for callsigns.
 - `callsign` (text) stores the member callsign in canonical uppercase.
 - `identifier_type` (text) stores the brand-style identifier (e.g., `CWops`, `SKCC`, `10-10`).
 - `identifier_value` (text) stores the membership value or number.
 - `member_name` (text, nullable) stores the member name when available.
 - `status` (text, nullable) stores membership status (e.g., `active`, `honorary`).
 - `valid_from` and `valid_to` (date, nullable) store membership validity.
-- `source_name`, `source_version`, `source_url`, and `imported_at` store dataset provenance.
+- `source_name` (text), `source_version` (text), `source_url` (text, nullable), and `imported_at` (timestamp UTC) store dataset provenance.
 - `notes` (text, nullable) stores optional registry notes.
-- Standard audit fields apply.
+- Standard fields apply.
 - The registry is external and not tied to `callsigns` by FK; matches use the callsign text.
 
 ## DXCC Entities (Draft)
+- Function: define DXCC entities with validity windows for historical accuracy.
 - `dxcc_number` (int) stores the official DXCC entity number.
 - `name` (text) stores the entity name.
 - `continent` (text, nullable) stores the continent code (e.g., `EU`, `NA`).
 - `valid_from` (date, nullable) stores the start date of entity validity.
 - `valid_to` (date, nullable) stores the end date of entity validity.
-- `replaced_by_entity_id` (FK, int64, nullable) links to the successor entity when `valid_to` is set.
+- `replaced_by_entity_id` (int64 FK, nullable) links to the successor entity when `valid_to` is set.
 - `deleted_at` (timestamp, nullable) marks soft deletion while preserving references.
-- Standard audit fields apply.
+- Standard fields apply.
 
 ## DXCC Prefixes (Draft)
-- `dxcc_entity_id` (FK, int64) links the prefix to its entity.
+- Function: map callsign prefixes to DXCC entities with validity dates.
+- `dxcc_entity_id` (int64 FK) links the prefix to its entity.
 - `prefix` (text) stores the callsign prefix (e.g., `HA`, `HG`).
 - `valid_from` (date, nullable) stores the start date of prefix validity.
 - `valid_to` (date, nullable) stores the end date of prefix validity.
 - `is_primary` (bool, nullable) marks a preferred prefix for display.
-- Standard audit fields apply.
+- Standard fields apply.
 
 ## Zone and Award Mapping (Draft)
 - ITU/CQ zone mapping should be derived from prefix rules with validity windows.
@@ -257,95 +291,106 @@ This document is licensed under Apache-2.0.
 - Enforce one primary rig per station and type in application logic.
 
 ## Rig Types (Draft)
-- `code` is a stable category key (e.g., `radio`, `amp`, `antenna`, `other`).
-- `name` is the display label.
-- Standard audit fields apply.
+- Function: define equipment categories for rigs.
+- `code` (text) is a stable category key (e.g., `radio`, `amp`, `antenna`, `other`).
+- `name` (text) is the display label.
+- Standard fields apply.
 
 ## Rig Models (Draft)
-- `manufacturer` and `model` identify the known template.
-- `rig_type_id` optionally links the template to a category.
-- `notes` stores optional template notes.
-- Standard audit fields apply.
+- Function: store known manufacturer/model templates for rig selection.
+- `manufacturer` (text) and `model` (text) identify the template.
+- `rig_type_id` (int64 FK, nullable) optionally links the template to a category.
+- `notes` (text, nullable) stores optional template notes.
+- Standard fields apply.
 
 ## Rigs (Draft)
-- `owner_user_id` or `owner_callsign_id` stores ownership (XOR).
-- `rig_type_id` assigns the category; use `other` when needed.
-- `rig_model_id` links to a known template (optional).
-- `name` is the user-facing label.
-- `manufacturer` and `model` store ad-hoc values when no template exists.
-- `serial_number` stores optional serial data.
-- `notes` stores optional rig notes.
-- `is_active` disables a rig without deleting data.
-- Standard audit fields apply.
+- Function: store user- or callsign-owned equipment inventory.
+- `owner_user_id` (int64 FK) or `owner_callsign_id` (int64 FK) stores ownership (XOR).
+- `rig_type_id` (int64 FK) assigns the category; use `other` when needed.
+- `rig_model_id` (int64 FK, nullable) links to a known template.
+- `name` (text) is the user-facing label.
+- `manufacturer` (text, nullable) and `model` (text, nullable) store ad-hoc values.
+- `serial_number` (text, nullable) stores optional serial data.
+- `notes` (text, nullable) stores optional rig notes.
+- `is_active` (bool) disables a rig without deleting data.
+- Standard fields apply.
 
 ## Bands (Draft)
-- `code` is the canonical band key (e.g., `20m`) and is unique per scope.
-- `name` is the display label (e.g., "20 meters").
-- `adif_code` stores the ADIF band name/code used in imports/exports.
-- `lower_freq_hz` and `upper_freq_hz` store band edges in Hz.
-- `is_custom` flags user-defined entries not in the reference pack.
-- `scope` defines sharing: `global`, `user`, `callsign` (tenant later).
-- `owner_user_id` or `owner_callsign_id` links custom entries to their owner.
-- `is_active` disables a band without deleting history.
-- Standard audit fields apply.
+- Function: define band lookup values for log entries and validation.
+- `code` (text) is the canonical band key (e.g., `20m`) and is unique per scope.
+- `name` (text) is the display label (e.g., "20 meters").
+- `adif_code` (text) stores the ADIF band name/code used in imports/exports.
+- `lower_freq_hz` and `upper_freq_hz` (int, nullable) store band edges in Hz.
+- `is_custom` (bool) flags user-defined entries not in the reference pack.
+- `scope` (text) defines sharing: `global`, `user`, `callsign` (tenant later).
+- `owner_user_id` (int64 FK, nullable) or `owner_callsign_id` (int64 FK, nullable) links custom entries to their owner.
+- `is_active` (bool) disables a band without deleting history.
+- Standard fields apply.
 - `code=other` is a global fallback when no predefined band matches.
 
 ## Modes (Draft)
-- `code` is the canonical mode key (e.g., `SSB`, `FT8`) and is unique per scope.
-- `name` is the display label.
-- `adif_mode` and `adif_submode` store ADIF mode fields.
-- `category` stores high-level grouping (`voice`, `data`, `cw`).
-- `is_custom` flags user-defined entries not in the reference pack.
-- `scope` defines sharing: `global`, `user`, `callsign` (tenant later).
-- `owner_user_id` or `owner_callsign_id` links custom entries to their owner.
-- `is_active` disables a mode without deleting history.
-- Standard audit fields apply.
+- Function: define mode lookup values for log entries and validation.
+- `code` (text) is the canonical mode key (e.g., `SSB`, `FT8`) and is unique per scope.
+- `name` (text) is the display label.
+- `adif_mode` (text) and `adif_submode` (text, nullable) store ADIF mode fields.
+- `category` (text, nullable) stores high-level grouping (`voice`, `data`, `cw`).
+- `is_custom` (bool) flags user-defined entries not in the reference pack.
+- `scope` (text) defines sharing: `global`, `user`, `callsign` (tenant later).
+- `owner_user_id` (int64 FK, nullable) or `owner_callsign_id` (int64 FK, nullable) links custom entries to their owner.
+- `is_active` (bool) disables a mode without deleting history.
+- Standard fields apply.
 - `code=other` is a global fallback when no predefined mode matches.
 
 ## Station Rigs (Draft)
-- `station_id` and `rig_id` map rigs to stations.
-- `is_primary` marks the default rig for a station and type.
-- `notes` stores optional mapping notes.
-- Enforce unique active mapping on `(station_id, rig_id)`; primary-per-type is enforced in app logic.
-- Standard audit fields apply.
+- Function: map rigs to stations and mark defaults.
+- `station_id` (int64 FK) links the station.
+- `rig_id` (int64 FK) links the rig.
+- `is_primary` (bool) marks the default rig for a station and type.
+- `notes` (text, nullable) stores optional mapping notes.
+- Standard fields apply.
+- Constraint: unique active mapping on `(station_id, rig_id)`; primary-per-type is enforced in app logic.
 
 ## Logbook Entries (Draft)
-- `timestamp_utc` stores QSO start time; `end_timestamp_utc` is optional.
-- `band_tx_id`/`band_rx_id` and `frequency_tx_hz`/`frequency_rx_hz` store split data.
+- Function: store QSO records with split, exchange, and counterparty metadata.
+- `timestamp_utc` (timestamp UTC) stores QSO start time; `end_timestamp_utc` (timestamp UTC, nullable) is optional.
+- `band_tx_id`/`band_rx_id` (int64 FK) and `frequency_tx_hz`/`frequency_rx_hz` (int, nullable) store split data.
 - `band_tx_id` and `band_rx_id` reference `bands` (internal IDs mapped via stable `public_id`).
-- `mode_id` references `modes` (internal ID mapped via stable `public_id`).
+- `mode_id` (int64 FK) references `modes` (internal ID mapped via stable `public_id`).
 - Unknown bands or modes should use `code=other` and record details in notes.
-- `other_callsign` is canonical uppercase; `other_callsign_id` is optional when the callsign exists in-system.
-- `rst_sent` and `rst_received` are optional.
-- `other_operator_name`, `other_qth`, and `other_grid_locator` store optional counterparty metadata.
-- `other_dxcc_entity_id`, `other_itu_zone`, and `other_cq_zone` store inferred or imported zones.
-- `other_iota_ref`, `other_sota_ref`, `other_pota_ref`, `other_wwff_ref` store optional awards identifiers.
-- `exchange_sent` and `exchange_received` store optional exchange strings.
-- `qsl_via` stores optional routing hints.
-- `contest_placeholder` stores contest identifiers until a dedicated contest model is added.
-- `other_lookup_source` records provenance (`manual`, `internal`, `qrz`, `import`).
+- `other_callsign` (text) is canonical uppercase; `other_callsign_id` (int64 FK, nullable) is optional when the callsign exists in-system.
+- `rst_sent` (text, nullable) and `rst_received` (text, nullable) store RST values.
+- `other_operator_name` (text, nullable), `other_qth` (text, nullable), and `other_grid_locator` (text, nullable) store counterparty metadata.
+- `other_dxcc_entity_id` (int64 FK, nullable), `other_itu_zone` (int, nullable), and `other_cq_zone` (int, nullable) store inferred or imported zones.
+- `other_iota_ref` (text, nullable), `other_sota_ref` (text, nullable), `other_pota_ref` (text, nullable), `other_wwff_ref` (text, nullable) store awards identifiers.
+- `exchange_sent` (text, nullable) and `exchange_received` (text, nullable) store exchange strings.
+- `qsl_via` (text, nullable) stores routing hints.
+- `contest_placeholder` (text, nullable) stores contest identifiers until a dedicated contest model is added.
+- `other_lookup_source` (text) records provenance (`manual`, `internal`, `qrz`, `import`).
+- Standard fields apply.
 
 ## Nodes (Draft)
-- `public_id` is the stable node identifier used in audit and sync.
-- `name` is the display label.
-- `node_type` is a text enum (e.g., `local`, `remote`, `cloud`).
-- `endpoint_url` stores optional remote endpoint metadata.
-- `last_seen_at` records last contact time.
-- `is_active` disables a node without deleting data.
-- `notes` stores optional node notes.
-- Standard audit fields apply.
+- Function: identify sync/audit origin nodes and remote endpoints.
+- `public_id` (ULID text) is the stable node identifier used in audit and sync.
+- `name` (text) is the display label.
+- `node_type` (text) is a text enum (e.g., `local`, `remote`, `cloud`).
+- `endpoint_url` (text, nullable) stores optional remote endpoint metadata.
+- `last_seen_at` (timestamp UTC, nullable) records last contact time.
+- `is_active` (bool) disables a node without deleting data.
+- `notes` (text, nullable) stores optional node notes.
+- Standard fields apply.
 
-## Auditability (Draft)
-- Core table changes are recorded in `audit_events` (append-only).
-- `entity_type` stores the affected table name.
-- `entity_public_id` references the target entity for stable lookup.
-- `action` values: `create`, `update`, `delete`, `merge`, `restore`.
-- `actor_user_id` references the internal user ID (system user for automation).
-- `origin_node_id` references the internal node ID for sync/import events.
-- `source` records provenance (`manual`, `import`, `sync`, `integration`).
-- `event_time` stores the UTC event timestamp.
-- `payload_before`/`payload_after` store diffs for updates and full snapshots for create/delete.
-- `notes` stores optional audit notes.
+## Audit Events (Draft)
+- Function: append-only audit trail for core entity changes.
+- `entity_type` (text) stores the affected table name.
+- `entity_public_id` (ULID text) references the target entity for stable lookup.
+- `action` (text) values: `create`, `update`, `delete`, `merge`, `restore`.
+- `actor_user_id` (int64 FK) references the internal user ID (system user for automation).
+- `origin_node_id` (int64 FK) references the internal node ID for sync/import events.
+- `source` (text) records provenance (`manual`, `import`, `sync`, `integration`).
+- `event_time` (timestamp UTC) stores the event timestamp.
+- `payload_before`/`payload_after` (text/JSON) store diffs or snapshots.
+- `notes` (text, nullable) stores optional audit notes.
+- Append-only table; no `deleted_at`.
 - Audit coverage is mandatory in SaaS; MVP uses the same structure for compatibility.
 
 ## Types and Compatibility
@@ -380,28 +425,30 @@ This document is licensed under Apache-2.0.
 - `qsl_status` includes `status_at`, `actor_user_id`, `origin_node_id`, `change_source`, and optional `note`.
 
 ## QSL Status (Draft)
-- `logbook_entry_id` (FK, int64) links the QSO record.
+- Function: store the latest QSL state per logbook entry, channel, and direction.
+- `logbook_entry_id` (int64 FK) links the QSO record.
 - `channel` (text) identifies the QSL channel (e.g., `lotw`, `eqsl`, `paper`, `bureau`, `direct`, `internal`).
 - `direction` (text) is `sent` or `received`.
 - `status` (text) is `sent` or `received` (MVP).
 - `status_at` (timestamp UTC) stores when the status was recorded.
-- `actor_user_id` (FK, int64) records who set the status.
-- `origin_node_id` (FK, int64, nullable) records the source node for sync/import.
+- `actor_user_id` (int64 FK) records who set the status.
+- `origin_node_id` (int64 FK, nullable) records the source node for sync/import.
 - `change_source` (text) records provenance (`manual`, `import`, `sync`, `integration`).
 - `note` (text, nullable) stores optional comments.
-- Standard audit fields apply.
+- Standard fields apply.
 
 ## QSL Events (Draft)
-- `logbook_entry_id` (FK, int64) links the QSO record.
+- Function: append-only history of QSL changes per channel and direction.
+- `logbook_entry_id` (int64 FK) links the QSO record.
 - `channel` (text) identifies the QSL channel (e.g., `lotw`, `eqsl`, `paper`, `bureau`, `direct`, `internal`).
 - `direction` (text) is `sent` or `received`.
 - `status` (text) is `sent` or `received` (MVP).
 - `event_time` (timestamp UTC) stores when the event was recorded.
-- `actor_user_id` (FK, int64) records who triggered the event.
-- `origin_node_id` (FK, int64, nullable) records the source node for sync/import.
+- `actor_user_id` (int64 FK) records who triggered the event.
+- `origin_node_id` (int64 FK, nullable) records the source node for sync/import.
 - `change_source` (text) records provenance (`manual`, `import`, `sync`, `integration`).
 - `note` (text, nullable) stores optional comments.
-- Standard audit fields apply.
+- Standard fields apply.
 
 
 ## Notes
