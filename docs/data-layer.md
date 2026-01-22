@@ -198,6 +198,16 @@ This document is licensed under Apache-2.0.
 - `contest_placeholder` stores contest identifiers until a dedicated contest model is added.
 - `other_lookup_source` records provenance (`manual`, `internal`, `qrz`, `import`).
 
+## Nodes (Draft)
+- `public_id` is the stable node identifier used in audit and sync.
+- `name` is the display label.
+- `node_type` is a text enum (e.g., `local`, `remote`, `cloud`).
+- `endpoint_url` stores optional remote endpoint metadata.
+- `last_seen_at` records last contact time.
+- `is_active` disables a node without deleting data.
+- `notes` stores optional node notes.
+- Standard audit fields apply.
+
 ## Auditability (Draft)
 - Core table changes are recorded in `audit_events` (append-only).
 - `audit_events` fields: `entity_type`, `entity_public_id`, `action`, `actor_user_id`, `origin_node_id`, `event_time`.
