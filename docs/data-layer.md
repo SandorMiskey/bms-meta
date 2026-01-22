@@ -44,6 +44,7 @@ This document is licensed under Apache-2.0.
 - `callsigns`: licensed callsign records with DXCC and zone defaults.
 - `callsign_memberships`: user-to-callsign roles and access.
 - `stations`: station profiles, QTH metadata, and per-station overrides.
+- `station_callsigns`: mapping of stations to allowed callsigns.
 - `logbook_entries`: QSO log records and operator metadata.
 - `rig_types`: equipment categories (radio, amp, antenna, etc.).
 - `rigs`: individual equipment items.
@@ -80,6 +81,7 @@ This document is licensed under Apache-2.0.
 - `callsign_memberships` includes invite tracking, role source, and optional notes.
 - The creator of a callsign is inserted as the first `admin` membership.
 - `stations` are owned by either a user or a callsign (not both); enforce via a check constraint.
+- `station_callsigns` links stations to allowed callsigns; users can log with a station only if they hold the callsign membership.
 - `logbook_entries` reference `callsign_id`, `created_by_user_id`, `operator_user_id`, and `operator_callsign_id`.
 - `logbook_entries.station_id` is optional.
 
@@ -92,6 +94,20 @@ This document is licensed under Apache-2.0.
 - `revoked_by_user_id` records who revoked access.
 - `created_at` acts as the invite timestamp; no separate `invited_at` is required.
 - Enforce unique active membership on `(callsign_id, user_id)` with a partial unique constraint.
+
+## Stations (Draft)
+- `name` is unique per owner (user or callsign).
+- `registered_qth` stores the station QTH used for licensing (optional).
+- `grid_locator` stores the station grid square (optional).
+- `latitude` and `longitude` store geolocation (optional).
+- `itu_zone` and `cq_zone` override callsign defaults (optional).
+- `notes` stores optional station notes.
+- `is_active` disables a station without deleting data.
+
+## Station Callsigns (Draft)
+- `station_callsigns` links stations to callsigns that may use them.
+- `is_primary` marks the default station for a callsign.
+- Enforce unique active mapping on `(station_id, callsign_id)` with a partial unique constraint.
 
 ## Users (Draft)
 - `username` is the login identifier (unique).
@@ -120,7 +136,8 @@ This document is licensed under Apache-2.0.
 
 ## Rig Inventory (Draft)
 - `rig_types` is a lookup table for extendable rig categories.
-- `rigs` belong to a station via `station_rigs` join rows.
+- `rigs` are mapped to stations via `station_rigs` join rows.
+- `station_rigs.is_primary` can mark the default rig per type for a station.
 
 ## Auditability (Draft)
 - Core table changes are recorded in `audit_events` (append-only).

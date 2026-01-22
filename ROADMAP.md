@@ -270,7 +270,7 @@ Status: completed (2026-01-21)
 - Draft core tables and relations: users, callsigns, memberships, logbook_entries, stations, rigs, nodes, audit_events, qsl_events, qsl_status.
 - Capture minimal fields and note forward-compat columns.
 - Define dual ID columns (`internal_id` + `public_id`) and FK usage for each core table.
-- Specify ownership rules (callsign memberships, station ownership XOR, operator fields).
+- Specify ownership rules (callsign memberships, station ownership XOR, operator fields, station-callsign mapping).
 - Add lookup tables for bands and modes.
 - Add DXCC entities/prefixes with validity windows and replacement mapping.
 - Decide lookup tables or enums for contests.
