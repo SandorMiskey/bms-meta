@@ -50,6 +50,10 @@
 - Make MVP foundations forward-compatible so later phases are additive, not core refactors.
 - Favor scalable storage decisions that support high-volume logbook data from the start.
 
+## Documentation Standards
+- Use detailed, explanatory documentation that clearly distinguishes tables, fields, types, and purpose.
+- Record decisions and rationale with enough context to avoid ambiguity later.
+
 ## Code Style: Go
 - Follow standard Go formatting with `gofmt`.
 - Import order: standard library, blank line, third-party, blank line, local modules.

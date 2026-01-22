@@ -232,7 +232,7 @@ This document is licensed under Apache-2.0.
 
 ## Indexing Strategy (Initial)
 - `logbook_entries`: `(timestamp_utc)`, `(other_callsign)`, `(frequency_hz)`, `(mode_enum)`
-- `qsl_status`: `(logbook_entry_id)`, `(channel)`, `(status)`
+- `qsl_status`: `(logbook_entry_id, channel, direction)`
 - `callsign_memberships`: `(callsign_id)`, `(user_id)`
 - `stations`: `(owner_user_id)`, `(owner_callsign_id)`
 - `audit_events`: `(entity_public_id)`, `(event_time)`
@@ -242,13 +242,39 @@ This document is licensed under Apache-2.0.
 - Never hard-delete log entries in MVP.
 
 ## QSL Status and Events Model
-- Use `qsl_events` for audit history and multi-source updates.
-- Use `qsl_status` as the latest per-source snapshot for fast queries.
-- `qsl_status` fields: `log_entry_id`, `source`, `status`, `sent_at`, `received_at`, `note`.
-- `qsl_events` fields: `log_entry_id`, `source`, `status`, `event_time`, `note`, `created_by`.
-- Sent and received are independent; a QSL may be received before sent.
-- UI status should be derived from `sent_at` and `received_at`.
-- Status enum: `unsent`, `sent`, `received`, `confirmed`.
+- `qsl_events` is append-only history of QSL changes per logbook entry, channel, and direction.
+- `qsl_status` stores the latest state per `(logbook_entry_id, channel, direction)`.
+- `direction` values: `sent` or `received`.
+- `status` values (MVP): `sent`, `received`.
+- Pending is represented by the absence of a `qsl_status` row for the given channel/direction.
+- `qsl_status` should be unique on `(logbook_entry_id, channel, direction)` for active rows.
+- `qsl_events` includes `event_time`, `actor_user_id`, `origin_node_id`, `change_source`, and optional `note`.
+- `qsl_status` includes `status_at`, `actor_user_id`, `origin_node_id`, `change_source`, and optional `note`.
+
+## QSL Status (Draft)
+- `logbook_entry_id` (FK, int64) links the QSO record.
+- `channel` (text) identifies the QSL channel (e.g., `lotw`, `eqsl`, `paper`, `bureau`, `direct`, `internal`).
+- `direction` (text) is `sent` or `received`.
+- `status` (text) is `sent` or `received` (MVP).
+- `status_at` (timestamp UTC) stores when the status was recorded.
+- `actor_user_id` (FK, int64) records who set the status.
+- `origin_node_id` (FK, int64, nullable) records the source node for sync/import.
+- `change_source` (text) records provenance (`manual`, `import`, `sync`, `integration`).
+- `note` (text, nullable) stores optional comments.
+- Standard audit fields apply.
+
+## QSL Events (Draft)
+- `logbook_entry_id` (FK, int64) links the QSO record.
+- `channel` (text) identifies the QSL channel (e.g., `lotw`, `eqsl`, `paper`, `bureau`, `direct`, `internal`).
+- `direction` (text) is `sent` or `received`.
+- `status` (text) is `sent` or `received` (MVP).
+- `event_time` (timestamp UTC) stores when the event was recorded.
+- `actor_user_id` (FK, int64) records who triggered the event.
+- `origin_node_id` (FK, int64, nullable) records the source node for sync/import.
+- `change_source` (text) records provenance (`manual`, `import`, `sync`, `integration`).
+- `note` (text, nullable) stores optional comments.
+- Standard audit fields apply.
+
 
 ## Notes
 - Schema will evolve during implementation; update this document as needed.
