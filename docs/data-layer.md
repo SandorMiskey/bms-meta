@@ -40,24 +40,26 @@ This document is licensed under Apache-2.0.
   - `internal/storage/postgres/write/<domain>`
 
 ## Core Tables (Draft)
-- `users`
-- `callsigns`
-- `callsign_memberships`
-- `stations`
-- `logbook_entries`
-- `rig_types`
-- `rigs`
-- `station_rigs`
-- `nodes`
-- `audit_events`
-- `qsl_status`
-- `qsl_events`
-- `auth_credentials`
-- `auth_sessions`
+- `users`: user accounts, defaults, and preferences.
+- `callsigns`: licensed callsign records with DXCC and zone defaults.
+- `callsign_memberships`: user-to-callsign roles and access.
+- `stations`: station profiles, QTH metadata, and per-station overrides.
+- `logbook_entries`: QSO log records and operator metadata.
+- `rig_types`: equipment categories (radio, amp, antenna, etc.).
+- `rigs`: individual equipment items.
+- `station_rigs`: mapping of rigs installed at stations.
+- `nodes`: origin node metadata for audit and sync.
+- `audit_events`: append-only audit trail for core entities.
+- `qsl_status`: latest per-source QSL state snapshots.
+- `qsl_events`: QSL event history records.
+- `auth_credentials`: stored credentials for optional auth.
+- `auth_sessions`: session tokens and expiry tracking.
+- `dxcc_entities`: DXCC entity definitions with validity windows.
+- `dxcc_prefixes`: prefixes associated with DXCC entities.
 
 ## Lookup Tables (Draft)
-- `bands`
-- `modes`
+- `bands`: band definitions for log entries and validation.
+- `modes`: mode definitions for log entries and validation.
 
 ## Access Control Tables (Draft)
 - `callsign_memberships` (role: `admin` | `write` | `read`, created_by, created_at)
@@ -91,6 +93,19 @@ This document is licensed under Apache-2.0.
 - `last_login_at` tracks the last login time.
 - `email_verified_at` tracks email verification status.
 - `timezone` and `locale` support user display preferences.
+
+## Callsigns (Draft)
+- `callsign` is stored in canonical uppercase and is unique for active rows (partial unique with soft delete).
+- `registered_qth` stores the licensed QTH on the callsign (optional).
+- `dxcc_entity_id` references the DXCC entity.
+- `itu_zone` and `cq_zone` store default zones and can be overridden by station data.
+- `is_active` disables a callsign without deleting data.
+
+## DXCC (Draft)
+- `dxcc_entities` stores DXCC entities with validity windows (`valid_from`, `valid_to`).
+- `deleted_at` indicates soft deletion while preserving references.
+- `replaced_by_entity_id` points to the successor entity when `valid_to` is set.
+- `dxcc_prefixes` stores multiple prefixes per entity, with optional validity windows.
 
 ## Rig Inventory (Draft)
 - `rig_types` is a lookup table for extendable rig categories.

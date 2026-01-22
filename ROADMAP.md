@@ -272,6 +272,7 @@ Status: completed (2026-01-21)
 - Define dual ID columns (`internal_id` + `public_id`) and FK usage for each core table.
 - Specify ownership rules (callsign memberships, station ownership XOR, operator fields).
 - Add lookup tables for bands and modes.
+- Add DXCC entities/prefixes with validity windows and replacement mapping.
 - Decide lookup tables or enums for contests.
 
 ##### 1.1.4 Migration Layout
