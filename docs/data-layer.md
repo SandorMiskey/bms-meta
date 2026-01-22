@@ -20,7 +20,6 @@ This document is licensed under Apache-2.0.
 - Core tables include `internal_id`, `public_id`, `created_at`, `created_by_user_id`, `updated_at`, `updated_by_user_id`, `deleted_at`.
 - `created_by_user_id` and `updated_by_user_id` always reference `users`; seed/automation uses a reserved `system` user.
 - Store timestamps in UTC.
-- `users.default_callsign_id` holds the default operator callsign.
 
 ## Migration Strategy
 - Tool: `golang-migrate` CLI, invoked via Makefile targets.
@@ -80,6 +79,18 @@ This document is licensed under Apache-2.0.
 - `stations` are owned by either a user or a callsign (not both); enforce via a check constraint.
 - `logbook_entries` reference `callsign_id`, `created_by_user_id`, `operator_user_id`, and `operator_callsign_id`.
 - `logbook_entries.station_id` is optional.
+
+## Users (Draft)
+- `username` is the login identifier (unique).
+- `email` is optional and can be used for notifications.
+- `display_name` is the friendly label shown in UIs.
+- `default_callsign_id` selects the operator callsign used by default.
+- `default_station_id` selects the station used by default.
+- `is_active` disables a user without deleting data.
+- `is_system` marks reserved system accounts.
+- `last_login_at` tracks the last login time.
+- `email_verified_at` tracks email verification status.
+- `timezone` and `locale` support user display preferences.
 
 ## Rig Inventory (Draft)
 - `rig_types` is a lookup table for extendable rig categories.
