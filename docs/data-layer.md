@@ -406,6 +406,7 @@ This document is licensed under Apache-2.0.
 - `logbook_entries`: `(timestamp_utc)`, `(other_callsign)`, `(frequency_tx_hz)`, `(frequency_rx_hz)`, `(band_tx_id)`, `(band_rx_id)`, `(mode_id)`
 - `qsl_status`: `(logbook_entry_id, channel, direction)`
 - `callsign_memberships`: `(callsign_id)`, `(user_id)`
+- `callsign_identifiers`: `(identifier_type, callsign)`
 - `stations`: `(owner_user_id)`, `(owner_callsign_id)`
 - `audit_events`: `(entity_public_id)`, `(event_time)`
 - `record_locks`: `(logbook_entry_id)`, `(unlocked_at)`

@@ -267,6 +267,7 @@ Status: completed (2026-01-21)
 - Document SQL dialect boundaries to avoid drift.
 
 ##### 1.1.3 Schema Draft
+Status: completed (2026-01-21)
 - Draft core tables and relations: users, callsigns, memberships, logbook_entries, stations, rigs, nodes, audit_events, qsl_events, qsl_status.
 - Capture minimal fields and note forward-compat columns.
 - Define dual ID columns (`internal_id` + `public_id`) and FK usage for each core table.
@@ -276,7 +277,7 @@ Status: completed (2026-01-21)
 - Define logbook entry metadata (split frequency/band, other party snapshot, exchanges, contest placeholder, lookup source).
 - Define rig inventory schema (rig types, models, station mapping).
 - Define bands/modes reference data pack, custom scope rules, and fallback `other` entries.
-- Decide lookup tables or enums for contests.
+- Use `contest_placeholder` until a dedicated contest lookup is introduced.
 
 ##### 1.1.4 Migration Layout
 - Create migration directories for sqlite and postgres.
