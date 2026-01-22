@@ -210,8 +210,15 @@ This document is licensed under Apache-2.0.
 
 ## Auditability (Draft)
 - Core table changes are recorded in `audit_events` (append-only).
-- `audit_events` fields: `entity_type`, `entity_public_id`, `action`, `actor_user_id`, `origin_node_id`, `event_time`.
+- `entity_type` stores the affected table name.
+- `entity_public_id` references the target entity for stable lookup.
+- `action` values: `create`, `update`, `delete`, `merge`, `restore`.
+- `actor_user_id` references the internal user ID (system user for automation).
+- `origin_node_id` references the internal node ID for sync/import events.
+- `source` records provenance (`manual`, `import`, `sync`, `integration`).
+- `event_time` stores the UTC event timestamp.
 - `payload_before`/`payload_after` store diffs for updates and full snapshots for create/delete.
+- `notes` stores optional audit notes.
 - Audit coverage is mandatory in SaaS; MVP uses the same structure for compatibility.
 
 ## Types and Compatibility
