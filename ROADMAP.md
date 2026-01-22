@@ -282,6 +282,7 @@ Status: completed (2026-01-21)
 ##### 1.1.4 Migration Layout
 - Create migration directories for shared, sqlite, and postgres.
 - Add baseline up/down migrations with SPDX headers.
+- Split baseline into schema and minimal seed migrations (reference data pack for full lists).
 - Define naming rules for future migrations and schema dump files.
 - Generate and commit schema dumps under `db/schema/*` for parity review.
 

@@ -60,6 +60,18 @@ This document is licensed under Apache-2.0.
 - Workflow: dumps are committed so schema parity can be reviewed in code review.
 - Rule: schema dump files are generated only; do not edit by hand.
 
+## Baseline and Seed Strategy (Draft)
+- Baseline migrations are split into schema and seed steps.
+- Schema migrations create all core and lookup tables plus constraints.
+- Seed migrations insert minimal, stable reference data required for MVP usage.
+- Baseline seeds should use fixed `public_id` values from the reference data pack.
+- Minimal seed scope:
+  - `rig_types` (radio, amp, antenna, other).
+  - `bands` and `modes` with `code=other` plus a small default set.
+- Full reference datasets (bands, modes, DXCC, external registries) are imported from
+  a reference data pack outside baseline migrations so they can be updated without
+  schema changes.
+
 ## Core Tables (Draft)
 - `users`: user accounts, defaults, and preferences.
 - `callsigns`: licensed callsign records with DXCC and zone defaults.
