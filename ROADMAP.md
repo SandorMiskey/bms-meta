@@ -287,6 +287,7 @@ Status: completed (2026-01-21)
 - Generate and commit schema dumps under `db/schema/*` for parity review.
 - Define rollback rules (required `down` files, IRREVERSIBLE header for data loss).
 - Add migration lint enforcement (pre-run checks in Makefile/CI).
+- Document migration execution flow (dep check, lint, up/down, dumps).
 
 ##### 1.1.5 sqlc Layout
 - Define query structure under `internal/storage` with read/write split.

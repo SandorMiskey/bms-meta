@@ -104,6 +104,49 @@ This document is licensed under Apache-2.0.
   - Schema dumps are regenerated and committed after changes.
 - The migration runner should invoke lint first (e.g., a `make migrate-check` step) and abort on errors.
 
+## Migration Execution (Draft)
+- Prerequisites: `migrate` CLI, `sqlite3`, and `pg_dump`. Use `make dep` to verify.
+- Always run `make migrate-check` before `up` or `down` to enforce lint rules.
+- SQLite flow (schema + seed + dump):
+  ```bash
+  # Validate prerequisites
+  make dep
+
+  # Lint migrations and enforce rollback rules
+  make migrate-check
+
+  # Apply schema + seed migrations
+  make migrate-up-sqlite
+
+  # Generate and commit a schema dump
+  make migrate-dump-sqlite
+  ```
+- Postgres flow (schema + seed + dump):
+  ```bash
+  # Validate prerequisites
+  make dep
+
+  # Lint migrations and enforce rollback rules
+  make migrate-check
+
+  # Apply schema + seed migrations
+  make migrate-up-postgres
+
+  # Generate and commit a schema dump
+  make migrate-dump-postgres
+  ```
+- Rollback example:
+  ```bash
+  # Lint before rollback
+  make migrate-check
+
+  # Roll back one step
+  make migrate-down-sqlite
+  make migrate-down-postgres
+  ```
+- Schema dump filenames include the last applied migration timestamp:
+  `schema_<timestamp>_after_<migration>.sql`.
+
 ## Core Tables (Draft)
 - `users`: user accounts, defaults, and preferences.
 - `callsigns`: licensed callsign records with DXCC and zone defaults.

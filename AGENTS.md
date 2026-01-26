@@ -19,6 +19,10 @@
 - Lint: `make lint` (preferred) or `golangci-lint run ./...` (once configured).
 - Format: `make fmt` (preferred) or `gofmt -w` on changed Go files.
 - Vet: `make vet` (preferred) or `go vet ./...`.
+- Migration deps check: `make dep`.
+- Migration lint: `make migrate-check`.
+- Migrate up/down: `make migrate-up-sqlite`, `make migrate-down-sqlite`, `make migrate-up-postgres`, `make migrate-down-postgres`.
+- Schema dumps: `make migrate-dump-sqlite`, `make migrate-dump-postgres`.
 
 ## Build, Lint, Test (Web/Desktop)
 - Install deps: `npm install` or `pnpm install` (when `package.json` exists).
