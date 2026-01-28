@@ -525,6 +525,33 @@ This document is licensed under Apache-2.0.
 - `audit_events`: `(entity_public_id)`, `(event_time)`
 - `record_locks`: `(logbook_entry_id)`, `(unlocked_at)`
 
+## Constraints (Draft)
+- All foreign keys reference `internal_id` values.
+- Unique constraints prefer active rows only (soft delete aware).
+
+## Unique and Partial Unique (Draft)
+- `callsign_memberships`: unique active `(callsign_id, user_id)`.
+- `station_callsigns`: unique active `(station_id, callsign_id)`.
+- `qsl_status`: unique active `(logbook_entry_id, channel, direction)`.
+- `callsign_identifiers`: unique active `(identifier_type, callsign)`.
+- `record_locks`: unique active `(logbook_entry_id)` where `unlocked_at IS NULL`.
+
+## Check Constraints (Draft)
+- `stations`: exactly one owner (`owner_user_id` XOR `owner_callsign_id`).
+- `rigs`: exactly one owner (`owner_user_id` XOR `owner_callsign_id`).
+
+## Foreign Keys (Draft)
+- `logbook_entries` → `callsigns`, `users`, `stations`, `bands`, `modes`, `nodes`.
+- `qsl_status` and `qsl_events` → `logbook_entries`, `users`, `nodes`.
+- `callsign_memberships` → `callsigns`, `users`.
+- `station_callsigns` → `stations`, `callsigns`.
+- `rigs` → `rig_types`, `rig_models`.
+- `station_rigs` → `stations`, `rigs`.
+- `auth_credentials`, `auth_sessions`, `auth_keys`, `auth_recovery_codes` → `users`.
+- `auth_key_secrets` → `auth_keys`.
+- `dxcc_prefixes` → `dxcc_entities`.
+- `callsigns` → `dxcc_entities`.
+
 ## Soft Delete Policy
 - Use `deleted_at` on user-visible data.
 - Never hard-delete log entries in MVP.

@@ -298,6 +298,7 @@ Status: completed (2026-01-21)
 - Define naming rules for query files and `sqlc` generated packages.
 
 ##### 1.1.6 Indexes and Constraints
+Status: completed (2026-01-21)
 - Add MVP indexes for callsign, band, mode, and timestamp.
 - Add FK and uniqueness constraints for integrity.
 - Validate parity across sqlite and postgres.
