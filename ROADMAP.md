@@ -313,13 +313,38 @@ Dependency: Phase 0 schema and sqlc layout.
 Risk: migration rollback issues or SQL dialect drift.
 
 #### 1.2 Server Runtime
-1. Review `IDEA-BACKLOG.md` and the Future Plans section for items to incorporate.
-2. Implement config loader and validation with sane defaults.
-3. Add structured logging, health checks, and graceful shutdown.
-4. Wire DB connections and connection pooling.
-5. Implement feature flags for optional auth and integrations.
-6. Dependency: configuration model and logging guidelines from Phase 0.
-7. Risk: config validation gaps cause runtime failures.
+##### 1.2.1 Config Loading and Validation
+- Review `IDEA-BACKLOG.md` and the Future Plans section for items to incorporate.
+- Define config schema, defaults, and precedence (CLI/env/file/server).
+- Validate config with clear error messages and server-required overrides.
+
+##### 1.2.2 Logging and Diagnostics
+- Implement structured logging with consistent fields and redaction.
+- Emit startup diagnostics and configuration summaries (no secrets).
+- Prepare request/trace IDs for future observability.
+
+##### 1.2.3 Health and Lifecycle
+- Add `/healthz` and readiness checks.
+- Implement graceful shutdown and background lifecycle management.
+- Expose basic runtime status for clients.
+
+##### 1.2.4 Database Connections and Pooling
+- Initialize sqlite/postgres connections with timeouts and pool settings.
+- Enforce busy timeouts and connection validation.
+- Log startup connection status and DB flavor.
+
+##### 1.2.5 Feature Flags and Cache Hooks
+- Add feature flags for auth and integrations.
+- Define cache configuration (in-process TTL now, Redis later).
+- Ensure flags are server-authoritative.
+
+##### 1.2.6 Runtime Sanity Checks
+- Validate migration version and schema compatibility at startup.
+- Verify reference data pack presence (if required).
+- Emit warnings for config/runtime mismatches.
+
+Dependency: configuration model and logging guidelines from Phase 0.
+Risk: config validation gaps cause runtime failures.
 
 #### 1.3 Authentication and Sessions
 1. Review `IDEA-BACKLOG.md` and the Future Plans section for items to incorporate.
@@ -345,8 +370,9 @@ Risk: migration rollback issues or SQL dialect drift.
 2. Provide minimal REST gateway for integrations and future web/desktop.
 3. Add WebSocket bridge for events and live updates.
 4. Document API endpoints and error codes.
-5. Dependency: gRPC services and event stream stability.
-6. Risk: REST/WebSocket divergence from gRPC semantics.
+5. Add API docs/tooling (Swagger UI, protoc-gen-doc, Postman collections).
+6. Dependency: gRPC services and event stream stability.
+7. Risk: REST/WebSocket divergence from gRPC semantics.
 
 #### 1.6 ADIF and Data Import/Export
 1. Review `IDEA-BACKLOG.md` and the Future Plans section for items to incorporate.
