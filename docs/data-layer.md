@@ -51,11 +51,27 @@ This document is licensed under Apache-2.0.
 - Schemas: `db/schema/sqlite` and `db/schema/postgres` (generated dumps).
 - Migrations: `db/migrations/shared`, `db/migrations/sqlite`, and `db/migrations/postgres`.
 - `shared` contains canonical SQL that is copied or adapted into the DB-specific folders.
-- Queries: split by DB and domain for readability:
-  - `internal/storage/sqlite/read/<domain>`
-  - `internal/storage/sqlite/write/<domain>`
-  - `internal/storage/postgres/read/<domain>`
-  - `internal/storage/postgres/write/<domain>`
+- Queries live under `db/queries` and are split into shared and DB-specific overrides:
+  - `db/queries/shared/<domain>_read.sql`
+  - `db/queries/shared/<domain>_write.sql`
+  - `db/queries/sqlite/<domain>_*.sql` (override only when needed)
+  - `db/queries/postgres/<domain>_*.sql` (override only when needed)
+
+## sqlc Layout (Draft)
+- A single `sqlc.yaml` defines two packages: one for SQLite and one for PostgreSQL.
+- Each package uses its DB-specific migrations as the schema source:
+  - SQLite schema: `db/migrations/sqlite/*.up.sql`
+  - Postgres schema: `db/migrations/postgres/*.up.sql`
+- The shared query set is used by default; DB-specific overrides are only added when
+  required by syntax or performance differences.
+- Read/write separation is done at the SQL file level, while Go packages remain
+  per-domain (one package per domain per DB).
+- Generated packages live under:
+  - `internal/storage/sqlite/<domain>`
+  - `internal/storage/postgres/<domain>`
+- Query files use `snake_case`; `-- name:` entries use `CamelCase` for Go idioms.
+- Prefer `sqlc` interfaces (`emit_interface`) and a small factory layer that selects
+  sqlite/postgres implementations based on config.
 
 ## Schema Dumps (Generated)
 - Purpose: verify that SQLite and PostgreSQL migrations yield identical schemas.

@@ -290,9 +290,12 @@ Status: completed (2026-01-21)
 - Document migration execution flow (dep check, lint, up/down, dumps).
 
 ##### 1.1.5 sqlc Layout
-- Define query structure under `internal/storage` with read/write split.
-- Map ownership to services (auth, logbook, contest, integrations).
-- Decide naming and output package layout rules.
+Status: completed (2026-01-21)
+- Define a single `sqlc.yaml` with sqlite/postgres packages.
+- Use DB-specific migrations as schema sources and shared query sets by default.
+- Store queries in `db/queries/shared` with DB-specific overrides as needed.
+- Keep read/write split at file level; packages are per-domain per DB.
+- Define naming rules for query files and `sqlc` generated packages.
 
 ##### 1.1.6 Indexes and Constraints
 - Add MVP indexes for callsign, band, mode, and timestamp.
