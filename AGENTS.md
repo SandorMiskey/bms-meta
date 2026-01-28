@@ -23,6 +23,7 @@
 - Migration lint: `make migrate-check`.
 - Migrate up/down: `make migrate-up-sqlite`, `make migrate-down-sqlite`, `make migrate-up-postgres`, `make migrate-down-postgres`.
 - Schema dumps: `make migrate-dump-sqlite`, `make migrate-dump-postgres`.
+- Migration validation: `make migrate-validate-sqlite`, `make migrate-validate-postgres`.
 
 ## Build, Lint, Test (Web/Desktop)
 - Install deps: `npm install` or `pnpm install` (when `package.json` exists).

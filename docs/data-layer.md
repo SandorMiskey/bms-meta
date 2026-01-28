@@ -123,6 +123,8 @@ This document is licensed under Apache-2.0.
 ## Migration Execution (Draft)
 - Prerequisites: `migrate` CLI, `sqlite3`, and `pg_dump`. Use `make dep` to verify.
 - Always run `make migrate-check` before `up` or `down` to enforce lint rules.
+- After applying schema and seed migrations, import the reference data pack for full
+  bands/modes, DXCC, and external registry datasets.
 - SQLite flow (schema + seed + dump):
   ```bash
   # Validate prerequisites
@@ -162,6 +164,21 @@ This document is licensed under Apache-2.0.
   ```
 - Schema dump filenames include the last applied migration timestamp:
   `schema_<timestamp>_after_<migration>.sql`.
+
+## Migration Validation (Draft)
+- Validation targets run lint, apply migrations, and generate dumps for parity checks.
+- SQLite validation:
+  ```bash
+  # Runs dep check, lint, up, and dump
+  make migrate-validate-sqlite
+  ```
+- Postgres validation:
+  ```bash
+  # Runs dep check, lint, up, and dump
+  make migrate-validate-postgres
+  ```
+- Validation is considered successful when migrations apply, schema dumps are generated,
+  and lint checks pass.
 
 ## Core Tables (Draft)
 - `users`: user accounts, defaults, and preferences.
@@ -551,6 +568,26 @@ This document is licensed under Apache-2.0.
 - `auth_key_secrets` → `auth_keys`.
 - `dxcc_prefixes` → `dxcc_entities`.
 - `callsigns` → `dxcc_entities`.
+
+## Schema Decisions and Limitations (Draft)
+- Dual IDs: `internal_id` is local; `public_id` is used for sync and APIs.
+- Soft delete: active rows use `deleted_at IS NULL`; history is preserved.
+- QSL: `direction` + `status`, pending is represented by the absence of a row.
+- Contest: `contest_placeholder` is temporary until a contest lookup is introduced.
+- Bands/modes: reference data pack provides canonical lists; `other` is the fallback.
+- Custom bands/modes: `scope` is `global`, `user`, or `callsign` (tenant later).
+- Callsign registry: external datasets map by callsign text, not FK.
+- Station ownership: XOR between `owner_user_id` and `owner_callsign_id`.
+- Rig ownership: XOR between `owner_user_id` and `owner_callsign_id`.
+- Station/callsign: mapping is explicit via `station_callsigns`.
+- Auth: key-based login is default; password login is optional.
+- Auth secrets: private keys are local-only and encrypted by default.
+- Auth password changes require re-encrypting stored private keys.
+- Local trust: allowed only in local-only mode (on by default unless disabled).
+- Migrations: schema/seed split; minimal seed plus external reference pack.
+- Schema dumps: committed parity artifacts, never edited by hand.
+- Migration lint: pre-run enforcement required for all migration execution.
+- sqlc: single config, sqlite/postgres packages, shared queries with overrides.
 
 ## Soft Delete Policy
 - Use `deleted_at` on user-visible data.

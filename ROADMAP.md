@@ -304,6 +304,7 @@ Status: completed (2026-01-21)
 - Validate parity across sqlite and postgres.
 
 ##### 1.1.7 Documentation and Checks
+Status: completed (2026-01-21)
 - Record migration commands and bootstrap steps.
 - Document schema decisions and limitations.
 - Validate SQLite-first default and basic Postgres seeding path.
