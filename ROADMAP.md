@@ -314,9 +314,18 @@ Risk: migration rollback issues or SQL dialect drift.
 
 #### 1.2 Server Runtime
 - Review `IDEA-BACKLOG.md` and the Future Plans section for items to incorporate.
+
 ##### 1.2.1 Config Loading and Validation
 - Define config schema, defaults, and precedence (CLI/env/file/server).
 - Validate config with clear error messages and server-required overrides.
+- Micro-steps:
+  - 1.2.1.1 Create config package skeleton and layout.
+  - 1.2.1.2 Define config structs for server/client.
+  - 1.2.1.3 Implement strict TOML parsing and config discovery.
+  - 1.2.1.4 Apply precedence merge (defaults → file → env → CLI → overrides).
+  - 1.2.1.5 Implement validation rules with aggregated errors.
+  - 1.2.1.6 Add redaction and safe summary logging.
+  - 1.2.1.7 Add minimal tests for edge cases.
 
 ##### 1.2.2 Logging and Diagnostics
 - Implement structured logging with consistent fields and redaction.

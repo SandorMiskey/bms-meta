@@ -59,6 +59,10 @@
 - Use detailed, explanatory documentation that clearly distinguishes tables, fields, types, and purpose.
 - Record decisions and rationale with enough context to avoid ambiguity later.
 
+## Implementation Process
+- Implement in micro-steps with explicit review after each change.
+- Keep each change small enough to review line-by-line before continuing.
+
 ## Code Style: Go
 - Follow standard Go formatting with `gofmt`.
 - Import order: standard library, blank line, third-party, blank line, local modules.
