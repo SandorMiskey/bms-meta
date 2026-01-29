@@ -13,8 +13,14 @@ This document is licensed under Apache-2.0.
 - Merge: server provides defaults, local overrides non-critical fields, server-required overrides always win.
 
 ## Config Discovery and Parsing
-- Default path: `~/.config/bms/config.toml` (or platform-specific equivalents below).
-- Override path: CLI `--config` or `BMS_CONFIG` environment variable.
+- Config path resolution order: CLI `--config` override (if set) -> `BMS_CONFIG` env var (if set) -> default config path.
+- Default config path is derived from `os.UserConfigDir()` + `bms/config.toml` (see platform-specific layout below).
+- Override paths are used as-provided except for `~` expansion (relative paths resolve against the process working directory).
+- `~`, `~/`, and `~\` expand to the user home directory; other env vars and glob patterns are not expanded.
+- Path resolution returns a candidate path without touching the filesystem; file existence is checked when loading.
+- Missing config files return `ErrConfigNotFound` and do not imply fallback searches.
+- If the resolved path points to a directory, loading returns `ErrConfigPathIsDir`.
+- The loader does not create directories and does not search alternate locations (no CWD or `/etc` fallback).
 - Parsing is strict: unknown keys cause a validation error.
 - Server processes `[server]`, `[database]`, `[auth]`, `[logging]`, `[grpc]`, `[rest]`,
   `[websocket]`, `[integrations]`, `[plugins]`, `[sync]`, `[telemetry]` sections.
