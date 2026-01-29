@@ -12,6 +12,14 @@ This document is licensed under Apache-2.0.
 - Precedence: CLI > env > local file > server defaults
 - Merge: server provides defaults, local overrides non-critical fields, server-required overrides always win.
 
+## Config Discovery and Parsing
+- Default path: `~/.config/bms/config.toml` (or platform-specific equivalents below).
+- Override path: CLI `--config` or `BMS_CONFIG` environment variable.
+- Parsing is strict: unknown keys cause a validation error.
+- Server processes `[server]`, `[database]`, `[auth]`, `[logging]`, `[grpc]`, `[rest]`,
+  `[websocket]`, `[integrations]`, `[plugins]`, `[sync]`, `[telemetry]` sections.
+- Clients process `[client.*]` sections and ignore server-only configuration.
+
 ## Merge and Precedence Rules
 1. Load defaults (server-provided baseline).
 2. Apply local `config.toml` overrides.
@@ -33,6 +41,20 @@ This document is licensed under Apache-2.0.
 - Changing the auth password requires re-encrypting stored private keys.
 - Device registration happens via pairing or recovery codes; local trust is local-only.
 
+## Validation Rules (Draft)
+- `database.driver` must be `sqlite` or `postgres` and requires a matching `database.dsn`.
+- `auth.enabled=true` requires at least one of `auth.key_auth.enabled` or `auth.password_auth.enabled`.
+- `auth.mode=remote` requires `auth.remote.endpoint`.
+- `auth.local_trust.enabled=true` is allowed only when `server.environment=local` and `auth.mode=local`.
+- `auth.key_storage.allow_unencrypted=true` must be an explicit opt-in; log a warning when used.
+- `sync.enabled=true` requires `sync.mode`.
+- Durations (`auth.token_ttl`) must parse; fractions (`auth.refresh_before_expiry`) must be between 0 and 1.
+- Unknown keys fail validation to avoid silent misconfiguration.
+
+## Error Handling and Redaction
+- Validation returns a list of field-path errors (e.g., `auth.mode`).
+- Secrets (passwords, tokens, DSNs) are redacted in logs and diagnostics.
+
 ## Server Config Schema (Draft)
 - `server.id`: instance identifier
 - `server.environment`: `local` or `remote`
@@ -41,6 +63,7 @@ This document is licensed under Apache-2.0.
 - `database.migrations`: migrations path
 - `auth.enabled`: true/false
 - `auth.mode`: `local` | `remote` | `hybrid`
+- `auth.remote.endpoint`: endpoint for delegated auth (required when `auth.mode=remote`)
 - `auth.key_auth.enabled`: true/false (key-based login)
 - `auth.password_auth.enabled`: true/false (password login)
 - `auth.key_storage.encrypted`: true/false (encrypt local private keys)
@@ -210,7 +233,7 @@ migrations = "db/migrations"
 
 [auth]
 enabled = true
-mode = "remote"
+mode = "local" # this server handles auth locally; use "remote" to delegate
 key_auth = { enabled = true }
 password_auth = { enabled = true }
 key_storage = { encrypted = true, allow_unencrypted = false }

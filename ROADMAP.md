@@ -313,8 +313,8 @@ Dependency: Phase 0 schema and sqlc layout.
 Risk: migration rollback issues or SQL dialect drift.
 
 #### 1.2 Server Runtime
-##### 1.2.1 Config Loading and Validation
 - Review `IDEA-BACKLOG.md` and the Future Plans section for items to incorporate.
+##### 1.2.1 Config Loading and Validation
 - Define config schema, defaults, and precedence (CLI/env/file/server).
 - Validate config with clear error messages and server-required overrides.
 
