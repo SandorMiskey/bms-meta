@@ -47,7 +47,10 @@
 - Keep public APIs documented with Go doc comments.
 - Keep generated code in `gen/` or `pkg/generated/`.
 - Prefer tabs over two spaces for indentation where possible (e.g. Makefiles).
+- Use tab width 4 (ts=4, sw=4, noet) and align inline comments with tabs.
+- Add a Vim modeline to every source file using the appropriate comment syntax (Go: `// vim: set ts=4 sw=4 noet:`).
 - Use Vim-style folding markers where possible: `// Block Name {{{` ... `// Block Name }}}`.
+- For logical blocks, add a header comment followed by `// }}}` to close the block.
 - Prefer the Go standard library; external dependencies require clear justification.
 - For `.gitignore`, use SPDX header + blank line, block headers with `{{{`/`}}}`, and a blank line after each block header and before each block end.
 

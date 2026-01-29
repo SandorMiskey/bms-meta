@@ -90,11 +90,14 @@ This document is licensed under Apache-2.0.
 - `sync.enabled`: true/false
 - `sync.mode`: `local` or `remote`
 - `telemetry.enabled`: true/false
+- `telemetry.endpoint`: endpoint URL
 
 ## Client Config Schema (Draft)
 - `client.server.address`: gRPC endpoint
 - `client.server.rest`: REST endpoint
 - `client.auth.token`: auth token
+- `client.auth.refresh_before_expiry`: fraction (default `0.8`)
+- `client.auth.store_token`: true/false
 - `client.theme.name`: theme name
 - `client.keymap.name`: keymap name
 - `client.plugins.enabled`: true/false
