@@ -17,6 +17,7 @@ This document is licensed under Apache-2.0.
 
 ## New / Unsorted
 - [Phase 1/2 candidate | Planned] UI (including TUI) should support tabs with customizable views.
+- [Phase 1 candidate | Consideration] Review whether config loader duplication (runtime vs. overlay) should be refactored into a shared helper once the merge pipeline stabilizes.
 - [Phase 2 candidate | Consideration] Consider Wails instead of Tauri/Electron for the desktop client. Wails is a Go-focused desktop framework that packages a web UI with native bindings; it can simplify Go integration but has a smaller ecosystem than Tauri/Electron.
 - [Phase 2 candidate | Consideration] Web/Electron/Tauri client: start only after TUI features and integrations are well advanced.
 - [Phase 5 candidate | Consideration] SaaS observability baseline: OpenTelemetry instrumentation with LGTM stack (Loki/Grafana/Tempo/Mimir).

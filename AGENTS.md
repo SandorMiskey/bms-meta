@@ -49,6 +49,9 @@
 - Prefer tabs over two spaces for indentation where possible (e.g. Makefiles).
 - Use tab width 4 (ts=4, sw=4, noet) and align inline comments with tabs.
 - Add a Vim modeline to every source file using the appropriate comment syntax (Go: `// vim: set ts=4 sw=4 noet:`).
+- Add a file-level comment to every source file that explains what it contains, what it does, and how it works.
+- Leave a blank line between the file-level comment block and the `package` declaration.
+- Leave a blank line before the Vim modeline.
 - Use Vim-style folding markers where possible: `// Block Name {{{` ... `// Block Name }}}`.
 - For logical blocks, add a header comment followed by `// }}}` to close the block.
 - Prefer the Go standard library; external dependencies require clear justification.
@@ -61,6 +64,7 @@
 ## Documentation Standards
 - Use detailed, explanatory documentation that clearly distinguishes tables, fields, types, and purpose.
 - Record decisions and rationale with enough context to avoid ambiguity later.
+- Favor teaching-style documentation: explain intent, trade-offs, and how the behavior works end-to-end.
 
 ## Implementation Process
 - Implement in micro-steps with explicit review after each change.

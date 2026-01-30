@@ -33,6 +33,81 @@ This document is licensed under Apache-2.0.
 4. Apply CLI flags.
 5. Apply server-required overrides (explicit allowlist of fields).
 
+## Resolution Pipeline (Implementation)
+- `ResolveConfig` implements the precedence rules in a fixed order and returns the
+  resolved config plus the resolved path of the local config file.
+- `ResolveConfigAndValidate` runs `ResolveConfig` and then validates the result,
+  returning aggregated field errors without attempting fallback behavior.
+- Step 1: `DefaultConfig()` constructs the baseline config with documented defaults.
+- Step 2: `LoadConfigOverlayFromDefault(overridePath)` resolves the config path and
+  decodes TOML into an overlay (not a full config).
+  - Missing files return `ErrConfigNotFound`.
+  - Directory paths return `ErrConfigPathIsDir`.
+  - There is no fallback to other locations and no implicit "defaults-only" mode.
+- Step 3: `ApplyOverlay` merges the file overlay into the base defaults.
+  - Only explicitly set keys override; absent keys leave defaults intact.
+- Step 4: `ApplyEnvOverrides` merges environment values into the config.
+  - Empty env values are ignored to avoid accidental overrides.
+- Step 5: `ApplyOverlay` merges CLI overrides (when provided by the CLI layer).
+  - The CLI overlay follows the same "nil means no override" semantics as the file overlay.
+- Step 6: `ApplyServerOverrides` enforces server-required overrides (auth/sync allowlist).
+  - Any non-allowlisted fields in the server override input are ignored.
+- Errors from any step are returned immediately without fallback or retries.
+
+## Default Values (Current)
+- `auth.token_ttl`: `168h`
+- `auth.refresh_before_expiry`: `0.8`
+- `auth.token_storage`: `keychain`
+- `client.auth.refresh_before_expiry`: `0.8`
+- All other fields are zero-valued until overridden by file/env/CLI/server inputs.
+
+## Environment Overrides (Current)
+- `BMS_DATABASE_DSN` -> `database.dsn`
+- `BMS_DATABASE_DRIVER` -> `database.driver`
+- `BMS_SERVER_ID` -> `server.id`
+- `BMS_AUTH_MODE` -> `auth.mode`
+- `BMS_SYNC_MODE` -> `sync.mode`
+- Environment overrides are decoded as strings and cast to enum types where needed;
+  semantic validation occurs later during config validation.
+- Empty environment values are ignored and do not override the base config.
+
+## CLI Overrides (Planned)
+- The CLI layer is expected to construct a `ConfigOverlay` using pointer fields,
+  mirroring the file overlay semantics (nil means "no override").
+- The CLI overlay is merged after env overrides and before server-required overrides.
+
+## Overlay Model Rationale
+- The merge pipeline must distinguish between an unset value and an explicit zero value
+  (e.g., `auth.enabled = false` must override defaults, while an absent key must not).
+- The runtime `Config` struct is kept non-pointer to avoid pervasive nil checks and to keep
+  application code straightforward; that means it cannot represent "unset" directly.
+- To preserve unset vs. explicit values, configuration files are decoded into pointer-based
+  overlay structs that mirror the config schema; each field is optional and only overrides
+  the base when it is non-nil.
+- The overlay types intentionally duplicate the config schema to keep decoding strongly
+  typed and to allow strict TOML validation (`DisallowUnknownFields`) without reflection.
+- The overlay is applied by explicit merge helpers that only copy non-nil fields into the
+  base `Config`, keeping override semantics readable and auditable.
+- Alternatives were considered and rejected:
+  - Making all runtime config fields pointers increases nil handling across the codebase.
+  - Using TOML metadata or untyped maps loses type safety and complicates validation.
+  - Reflection-based merges reduce readability and make override rules harder to audit.
+
+## Loader Roles (Runtime vs Overlay)
+- Two file loaders exist to keep the merge pipeline explicit and type-safe.
+- `LoadConfig` reads TOML directly into the runtime `Config` struct.
+  - Use it when the config is already fully resolved (for example, server-provided defaults
+    or tests that do not require merge semantics).
+  - The runtime struct uses non-pointer fields, so it cannot represent an "unset" value.
+- `LoadConfigOverlay` reads TOML into pointer-based overlay structs.
+  - Use it for local config files, env/CLI overlays, and any partial inputs that must
+    preserve "unset" vs. explicit zero values.
+  - Each non-nil overlay field overrides the base config during merge.
+- The loaders intentionally duplicate the same path validation behavior (missing file,
+  directory path) so error semantics remain consistent across both paths.
+- This duplication is deliberate for clarity and auditability; a shared helper is an
+  acceptable future refactor once the merge pipeline stabilizes.
+
 ## Secrets Guidance
 - Secrets are allowed in `config.toml` for local use.
 - Prefer environment variables or OS keychain when available.
@@ -57,9 +132,42 @@ This document is licensed under Apache-2.0.
 - Durations (`auth.token_ttl`) must parse; fractions (`auth.refresh_before_expiry`) must be between 0 and 1.
 - Unknown keys fail validation to avoid silent misconfiguration.
 
+## Validation Implementation
+- Validation is performed by `ValidateConfig` after the merge pipeline has produced
+  a resolved config; use `ResolveConfigAndValidate` to run both steps together.
+- `ValidateConfig` appends `FieldError` entries for each failed rule instead of
+  short-circuiting, so all issues are reported in a single pass.
+- `FieldError` carries a dotted field path (e.g., `auth.remote.endpoint`) and a
+  human-readable message; `ValidationErrors` implements `error` by concatenating
+  all field errors with semicolon separators.
+- Validation runs in a deterministic order (database -> auth -> sync -> auth durations)
+  to keep error output stable across runs and easy to compare in logs.
+- Validation is pure: it does not touch external systems or runtime services.
+
+## Testing Notes
+- Minimal unit tests cover strict TOML decoding, overlay merge semantics, and
+  aggregated validation errors.
+- The unknown-key test asserts that `DecodeConfig` returns a clear error with
+  the full key path (e.g., `server.unknown`).
+- The overlay test confirms that explicit zero values (such as `sync.enabled=false`)
+  override base config values while leaving unrelated fields unchanged.
+- The validation test verifies that multiple rule violations are aggregated into
+  `ValidationErrors` and that each expected field path is present.
+
 ## Error Handling and Redaction
 - Validation returns a list of field-path errors (e.g., `auth.mode`).
+- Unknown keys are rejected during decoding with an explicit `unknown config keys` error.
+- Loader errors (`ErrConfigNotFound`, `ErrConfigPathIsDir`) are returned as-is by `ResolveConfig`.
 - Secrets (passwords, tokens, DSNs) are redacted in logs and diagnostics.
+
+## Redaction and Summary Logging
+- `RedactConfig` produces a sanitized copy of the resolved config for safe logging.
+- Redaction preserves the full config shape so summaries remain comprehensive.
+- The following fields are currently redacted with a `[redacted]` placeholder:
+  - `database.dsn`
+  - `client.auth.token`
+- Other fields are logged as-is; if a new field can carry secrets, it must be
+  added to the redaction list alongside a documentation update.
 
 ## Server Config Schema (Draft)
 - `server.id`: instance identifier
@@ -115,6 +223,8 @@ This document is licensed under Apache-2.0.
 - `auth.mode`
 - `sync.enabled`
 - `sync.mode`
+- Applied last in the pipeline to enforce server-required behavior.
+- Non-allowlisted fields provided by the server are ignored.
 
 ## Server-Provided Configuration
 - Server defaults may be user-specific (feature entitlements, UI capabilities).
