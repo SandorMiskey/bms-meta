@@ -9,7 +9,7 @@ This document is licensed under Apache-2.0.
 - Format: TOML
 - File name: `config.toml`
 - Scope: server and client configs use the same filename, but different sections.
-- Precedence: CLI > env > local file > server defaults
+- Precedence (highest to lowest): server-required overrides > CLI > env > local file > server defaults
 - Merge: server provides defaults, local overrides non-critical fields, server-required overrides always win.
 
 ## Config Discovery and Parsing
@@ -38,6 +38,8 @@ This document is licensed under Apache-2.0.
   resolved config plus the resolved path of the local config file.
 - `ResolveConfigAndValidate` runs `ResolveConfig` and then validates the result,
   returning aggregated field errors without attempting fallback behavior.
+- `ResolveConfigDiagnostics` runs `ResolveConfig`, collects warnings, and then
+  validates the result so startup code can log both warnings and errors.
 - Step 1: `DefaultConfig()` constructs the baseline config with documented defaults.
 - Step 2: `LoadConfigOverlayFromDefault(overridePath)` resolves the config path and
   decodes TOML into an overlay (not a full config).
@@ -144,6 +146,18 @@ This document is licensed under Apache-2.0.
   to keep error output stable across runs and easy to compare in logs.
 - Validation is pure: it does not touch external systems or runtime services.
 
+## Warnings and Operator Alerts
+- Non-fatal issues are collected by `CollectConfigWarnings` and returned as a
+  `WarningList` so callers can log or surface them without blocking startup.
+- Warnings use the same dotted field paths as validation errors for consistency.
+- Current warnings:
+  - `auth.key_storage.allow_unencrypted`: warns that local keys are stored
+    without encryption and should be explicitly reviewed.
+- `ResolveConfigDiagnostics` is the recommended entry point for startup logging,
+  because it returns warnings alongside any validation errors.
+- Warnings are collected before validation so they are available even when
+  validation fails and the config cannot be used.
+
 ## Testing Notes
 - Minimal unit tests cover strict TOML decoding, overlay merge semantics, and
   aggregated validation errors.
@@ -165,7 +179,9 @@ This document is licensed under Apache-2.0.
 - Redaction preserves the full config shape so summaries remain comprehensive.
 - The following fields are currently redacted with a `[redacted]` placeholder:
   - `database.dsn`
+  - `auth.remote.endpoint`
   - `client.auth.token`
+- Endpoints are redacted defensively because URLs may embed credentials.
 - Other fields are logged as-is; if a new field can carry secrets, it must be
   added to the redaction list alongside a documentation update.
 
