@@ -10,28 +10,29 @@
 #   just commit-all your commit message
 #   just status-all
 
+section name:
+	@printf "\033[1;44;97m  %s  \033[0m\n" "{{name}}"
+
 c *msg: s
 	@if [ -z "{{msg}}" ]; then \
 		echo "msg is required (example: just commit-all your message)"; \
 		exit 2; \
 	fi
-	@echo === === ===
+	@just section "bms-core add/commit"
 	git -C bms-core add -A
 	git -C bms-core diff --cached --quiet || git -C bms-core commit -m "{{msg}}"
 	git -C bms-core log -3 --oneline --graph --decorate
-	@echo === === ===
+	@just section "bms-meta add/commit"
 	git -C bms-meta add -A
 	git -C bms-meta diff --cached --quiet || git -C bms-meta commit -m "{{msg}}"
 	git -C bms-meta log -3 --oneline --graph --decorate
-	@echo === === ===
 
 s:
-	@echo === === ===
+	@just section "bms-core status"
 	git -C bms-core status -sb
 	git -C bms-core log -3 --oneline --graph --decorate
-	@echo === === ===
+	@just section "bms-meta status"
 	git -C bms-meta status -sb
 	git -C bms-meta log -3 --oneline --graph --decorate
-	@echo === === ===
 
 # vim: set ts=4 sw=4 noet:
