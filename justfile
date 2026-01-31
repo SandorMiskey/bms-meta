@@ -13,7 +13,7 @@
 section name:
 	@printf "\033[1;44;97m  %s  \033[0m\n" "{{name}}"
 
-c *msg: s
+c *msg:
 	@if [ -z "{{msg}}" ]; then \
 		echo "msg is required (example: just commit-all your message)"; \
 		exit 2; \
@@ -26,6 +26,12 @@ c *msg: s
 	git -C bms-meta add -A
 	git -C bms-meta diff --cached --quiet || git -C bms-meta commit -m "{{msg}}"
 	git -C bms-meta log -3 --oneline --graph --decorate
+
+p:
+	@just section "bms-core push"
+	git -C bms-core push
+	@just section "bms-meta push"
+	git -C bms-meta push
 
 s:
 	@just section "bms-core status"
