@@ -16,7 +16,9 @@ commit-all *msg:
 	fi
 	git -C bms-core add -A
 	git -C bms-core diff --cached --quiet || git -C bms-core commit -m "{{msg}}"
+	git -C bms-core log -3
 	git -C bms-meta add -A
 	git -C bms-meta diff --cached --quiet || git -C bms-meta commit -m "{{msg}}"
+	git -C bms-meta log -3
 
 # vim: set ts=4 sw=4 noet:
