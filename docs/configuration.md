@@ -77,6 +77,17 @@ This document is licensed under Apache-2.0.
 - Component identifiers are standardized (e.g., `config`, `auth`, `database`,
   `grpc`, `rest`, `websocket`, `sync`, `integrations`, `plugins`, `telemetry`).
 
+## Startup Diagnostics Logging
+- Entry points should call `LogConfigDiagnostics` after resolving config to
+  emit startup diagnostics without logging directly inside the config package.
+- Emitted events:
+  - `config_loaded`: includes `config_path`, `warnings_count`, and `redacted=true`.
+  - `config_warnings`: emitted only when warnings are present.
+- Warning payload format depends on the log format:
+  - JSON logs: `warnings` is a list of `{path, message}` objects.
+  - Text logs: `warnings` is a single semicolon-delimited string.
+- The `config_loaded` event logs the redacted config payload under `config`.
+
 ## Environment Overrides (Current)
 - `BMS_DATABASE_DSN` -> `database.dsn`
 - `BMS_DATABASE_DRIVER` -> `database.driver`

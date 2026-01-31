@@ -52,6 +52,7 @@
 - Add a file-level comment to every source file that explains what it contains, what it does, and how it works.
 - Leave a blank line between the file-level comment block and the `package` declaration.
 - Leave a blank line before the Vim modeline.
+- Avoid direct output/logging in internal/library packages; entrypoints should own logging and printing.
 - Use Vim-style folding markers where possible: `// Block Name {{{` ... `// Block Name }}}`.
 - For logical blocks, add a header comment followed by `// }}}` to close the block.
 - Prefer the Go standard library; external dependencies require clear justification.
