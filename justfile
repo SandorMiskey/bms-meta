@@ -3,11 +3,12 @@
 #
 # Multi-repo commit helper.
 # This justfile commits the listed repositories with the same message.
-# It uses `git -C` so you can run it from anywhere, and it skips repos with
-# no staged changes. Add repositories by duplicating the commit lines.
+# Run it from the workspace root (or via the root symlink) so the relative
+# repo paths resolve correctly. Add repositories by duplicating the lines.
 #
 # Usage:
 #   just commit-all your commit message
+#   just status-all
 
 commit-all *msg:
 	@if [ -z "{{msg}}" ]; then \
@@ -20,5 +21,9 @@ commit-all *msg:
 	git -C bms-meta add -A
 	git -C bms-meta diff --cached --quiet || git -C bms-meta commit -m "{{msg}}"
 	git -C bms-meta log -3
+
+status-all:
+	git -C bms-core status -sb
+	git -C bms-meta status -sb
 
 # vim: set ts=4 sw=4 noet:
