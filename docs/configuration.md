@@ -78,6 +78,12 @@ This document is licensed under Apache-2.0.
 - Component identifiers are standardized (e.g., `config`, `auth`, `database`,
   `grpc`, `rest`, `websocket`, `sync`, `integrations`, `plugins`, `telemetry`).
 
+## Request and Trace Identifiers
+- `request_id` and `trace_id` are stored in `context.Context` using logging helpers
+  so middleware and handlers can attach identifiers once per request.
+- Identifiers are stored as strings for now; typed wrappers may be introduced later
+  as tracing is integrated and ID formats are standardized.
+
 ## Startup Diagnostics Logging
 - Entry points should call `LogConfigDiagnostics` after resolving config to
   emit startup diagnostics without logging directly inside the config package.
