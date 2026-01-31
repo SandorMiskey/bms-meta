@@ -10,7 +10,7 @@
 #   just commit-all your commit message
 #   just status-all
 
-c *msg:
+c *msg: s
 	@if [ -z "{{msg}}" ]; then \
 		echo "msg is required (example: just commit-all your message)"; \
 		exit 2; \
