@@ -16,6 +16,10 @@ BMS uses a dual-licensing model:
 - `bms-website`: Apache-2.0 components (public website).
 - `bms-cloud`: AGPL-3.0-only OR LicenseRef-Commercial components.
 
+## Repository License Files
+- Apache-licensed repositories must include `LICENSE` (Apache-2.0 text) and `NOTICE`.
+- Dual-licensed components remain isolated in `bms-cloud` with their own licensing files.
+
 ## SPDX Templates
 - Apache-2.0: `SPDX_Apache.txt`
 - AGPL-3.0-only OR LicenseRef-Commercial: `SPDX_AGPL.txt`
