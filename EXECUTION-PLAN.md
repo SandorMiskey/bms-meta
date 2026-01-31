@@ -166,6 +166,7 @@ Status: completed (2026-01-31)
 - Prepare request/trace IDs for future observability.
 
 ##### 1.2.3 Health and Lifecycle
+Status: completed (2026-01-31)
 - Add `/healthz` and readiness checks.
 - Implement graceful shutdown and background lifecycle management.
 - Expose basic runtime status for clients.

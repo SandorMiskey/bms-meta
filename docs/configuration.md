@@ -95,6 +95,17 @@ This document is licensed under Apache-2.0.
   - Text logs: `warnings` is a single semicolon-delimited string.
 - The `config_loaded` event logs the redacted config payload under `config`.
 
+## Health and Readiness Endpoints
+- The health server listens on the REST listener address (`rest.address`).
+- If `rest.address` is empty, the health server is disabled and a startup
+  warning is logged.
+- `/healthz` always returns HTTP 200 with `ok` to indicate the process is alive.
+- `/readyz` returns HTTP 200 with `ready` once the service is marked ready;
+  otherwise it returns HTTP 503 with `not ready`.
+- Readiness is set after configuration is successfully resolved and validated.
+- When the REST server is introduced, health endpoints will be served by the
+  same listener to avoid address conflicts.
+
 ## Environment Overrides (Current)
 - `BMS_DATABASE_DSN` -> `database.dsn`
 - `BMS_DATABASE_DRIVER` -> `database.driver`
@@ -204,6 +215,8 @@ This document is licensed under Apache-2.0.
   file, env, CLI, and server overrides.
 - Logging tests cover request/trace context helpers, warning formatting for JSON
   versus text logs, and invalid format/level/component validation.
+- Health tests cover `/healthz` and `/readyz` status responses for ready and
+  not-ready states.
 
 ## Error Handling and Redaction
 - Validation returns a list of field-path errors (e.g., `auth.mode`).
