@@ -10,7 +10,7 @@
 #   just commit-all your commit message
 #   just status-all
 
-commit-all *msg:
+c *msg:
 	@if [ -z "{{msg}}" ]; then \
 		echo "msg is required (example: just commit-all your message)"; \
 		exit 2; \
@@ -23,7 +23,7 @@ commit-all *msg:
 	git -C bms-meta diff --cached --quiet || git -C bms-meta commit -m "{{msg}}"
 	git -C bms-meta log -3 --oneline --graph --decorate
 
-status-all:
+s:
 	git -C bms-core status -sb
 	git -C bms-core log -3 --oneline --graph --decorate
 	@echo ===
