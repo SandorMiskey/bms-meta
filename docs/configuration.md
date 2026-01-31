@@ -63,6 +63,20 @@ This document is licensed under Apache-2.0.
 - `client.auth.refresh_before_expiry`: `0.8`
 - All other fields are zero-valued until overridden by file/env/CLI/server inputs.
 
+## Logging Defaults and Fields
+- Logging is configured via `logging.format` and `logging.level` and can be set
+  per component by providing different defaults at initialization time.
+- Recommended defaults:
+  - Server components: `logging.format = json`, `logging.level = info`
+  - CLI/TUI components: `logging.format = text`, `logging.level = info`
+- `NewLogger` applies the config values when set; otherwise it falls back to the
+  component defaults provided by the caller.
+- Canonical log fields:
+  - `component`, `event`, `request_id`, `trace_id`, `server_id`, `environment`
+  - Diagnostics: `config_path`, `warnings_count`, `redacted`
+- Component identifiers are standardized (e.g., `config`, `auth`, `database`,
+  `grpc`, `rest`, `websocket`, `sync`, `integrations`, `plugins`, `telemetry`).
+
 ## Environment Overrides (Current)
 - `BMS_DATABASE_DSN` -> `database.dsn`
 - `BMS_DATABASE_DRIVER` -> `database.driver`
@@ -161,8 +175,8 @@ This document is licensed under Apache-2.0.
 ## Testing Notes
 - Minimal unit tests cover strict TOML decoding, overlay merge semantics, and
   aggregated validation errors.
-- The unknown-key test asserts that `DecodeConfig` returns a clear error with
-  the full key path (e.g., `server.unknown`).
+- The unknown-key test asserts that `DecodeConfig` returns `invalid config keys`
+  with the full key path (e.g., `server.unknown`).
 - The overlay test confirms that explicit zero values (such as `sync.enabled=false`)
   override base config values while leaving unrelated fields unchanged.
 - The validation test verifies that multiple rule violations are aggregated into
@@ -170,7 +184,7 @@ This document is licensed under Apache-2.0.
 
 ## Error Handling and Redaction
 - Validation returns a list of field-path errors (e.g., `auth.mode`).
-- Unknown keys are rejected during decoding with an explicit `unknown config keys` error.
+- Unknown keys are rejected during decoding with an explicit `invalid config keys` error.
 - Loader errors (`ErrConfigNotFound`, `ErrConfigPathIsDir`) are returned as-is by `ResolveConfig`.
 - Secrets (passwords, tokens, DSNs) are redacted in logs and diagnostics.
 

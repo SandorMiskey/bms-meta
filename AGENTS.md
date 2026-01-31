@@ -69,6 +69,7 @@
 ## Implementation Process
 - Implement in micro-steps with explicit review after each change.
 - Keep each change small enough to review line-by-line before continuing.
+- When a roadmap item is completed, mark it as completed in `ROADMAP.md` with a date.
 
 ## Code Style: Go
 - Follow standard Go formatting with `gofmt`.

@@ -316,6 +316,7 @@ Risk: migration rollback issues or SQL dialect drift.
 - Review `IDEA-BACKLOG.md` and the Future Plans section for items to incorporate.
 
 ##### 1.2.1 Config Loading and Validation
+Status: completed (2026-01-31)
 - Define config schema, defaults, and precedence (CLI/env/file/server).
 - Validate config with clear error messages and server-required overrides.
 - Micro-steps:
