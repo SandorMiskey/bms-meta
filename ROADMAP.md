@@ -329,6 +329,7 @@ Status: completed (2026-01-31)
   - 1.2.1.7 Add minimal tests for edge cases.
 
 ##### 1.2.2 Logging and Diagnostics
+Status: completed (2026-01-31)
 - Implement structured logging with consistent fields and redaction.
 - Emit startup diagnostics and configuration summaries (no secrets).
 - Prepare request/trace IDs for future observability.

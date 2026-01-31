@@ -199,6 +199,9 @@ This document is licensed under Apache-2.0.
   override base config values while leaving unrelated fields unchanged.
 - The validation test verifies that multiple rule violations are aggregated into
   `ValidationErrors` and that each expected field path is present.
+- Additional config tests cover redaction of secrets, loader error paths
+  (`ErrConfigNotFound`, `ErrConfigPathIsDir`), and merge precedence across
+  file, env, CLI, and server overrides.
 - Logging tests cover request/trace context helpers, warning formatting for JSON
   versus text logs, and invalid format/level/component validation.
 
