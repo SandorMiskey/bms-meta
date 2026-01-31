@@ -14,6 +14,7 @@ This document is licensed under Apache-2.0.
 
 ## Config Discovery and Parsing
 - Config path resolution order: CLI `--config` override (if set) -> `BMS_CONFIG` env var (if set) -> default config path.
+- `bmsd` and `bms` accept `--config` to set the override path explicitly.
 - Default config path is derived from `os.UserConfigDir()` + `bms/config.toml` (see platform-specific layout below).
 - Override paths are used as-provided except for `~` expansion (relative paths resolve against the process working directory).
 - `~`, `~/`, and `~\` expand to the user home directory; other env vars and glob patterns are not expanded.
