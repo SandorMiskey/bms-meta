@@ -66,6 +66,8 @@
 - Use detailed, explanatory documentation that clearly distinguishes tables, fields, types, and purpose.
 - Record decisions and rationale with enough context to avoid ambiguity later.
 - Favor teaching-style documentation: explain intent, trade-offs, and how the behavior works end-to-end.
+- Documentation updates are mandatory for any behavior or workflow change; never skip them.
+- Document new tests or testing coverage changes alongside the feature they verify.
 
 ## Implementation Process
 - Implement in micro-steps with explicit review after each change.

@@ -199,6 +199,8 @@ This document is licensed under Apache-2.0.
   override base config values while leaving unrelated fields unchanged.
 - The validation test verifies that multiple rule violations are aggregated into
   `ValidationErrors` and that each expected field path is present.
+- Logging tests cover request/trace context helpers, warning formatting for JSON
+  versus text logs, and invalid format/level/component validation.
 
 ## Error Handling and Redaction
 - Validation returns a list of field-path errors (e.g., `auth.mode`).
